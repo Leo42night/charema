@@ -27,11 +27,9 @@ Additional:
 - [x] Layout Chatbot Responsive di mobile saat  keyboard aktif.
 - [x] Handle pastikan image setelah login benar-benar diload, agar tidak 404.
 - [ ] fitur chatbot.
-
-fitur login masuk belum berfungsi untuk load image dengan benar
-fitur alur rekomendasi belum diselesaikan
-fitur chat & reward belum diset sama sekali
-fitur about berisi detail proyek, infromasi statistik dari BE dan info reward belum dibuat.
+- [ ] fitur alur rekomendasi.
+- [ ] fitur achivement & reward.
+- [ ] fitur about berisi detail proyek, infromasi statistik dari BE dan info reward.
 
 ## Tools
 ```sh
