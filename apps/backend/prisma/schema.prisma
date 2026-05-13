@@ -1,0 +1,41 @@
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+  engineType = "client"
+  runtime = "bun"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// simpan data target input mahasiswa, matkul yang diambil semester ini
+model RecomTarget { 
+  // user key key dari proses index user-items CF, value key matkuls disiman di JSON file
+  user_key  Int   @id // user_key sekarang menjadi identitas unik utama
+  // JSON [1,2,3,'new matkul`], value key matkuls disiman di JSON file
+  matkuls   Json
+  createdAt  DateTime   @default(now())
+}
+
+// Simapn hasil score terhadap "apakah hasil rekomendasi membantu? 1-5", apakah score membantu
+model Score {
+  user_key    Int   @id // user_key sekarang menjadi identitas unik utama
+  score_cf    Int
+  score_chat  Int
+  createdAt  DateTime   @default(now())
+}
+
+// simpan nilai prompt, index response, & score(true/false)
+model ScorePrompt {
+  id          Int   @id @default(autoincrement())
+  user_key    Int
+  prompt      String
+  res_type    Int
+  res_index   Int
+  score       Int?
+  createdAt  DateTime   @default(now())
+}

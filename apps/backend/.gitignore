@@ -1,0 +1,12 @@
+# dependencies (bun install)
+node_modules
+dist
+
+# dotenv environment variable files
+.env
+.env.production
+
+src/generated/prisma
+src/data/item_matkul_list.json
+src/data/user_cf_results.json
+tfjs_saved_model

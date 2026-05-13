@@ -1,0 +1,30 @@
+{
+  "matkul_kosong": [
+    {
+      "semester": 6,
+      "kode": "SI-6037",
+      "matkul": "Pemikiran Sistemik",
+      "sks": 3,
+      "prasyarat": null,
+      "min_sks": null,
+      "item": null
+    },
+    {
+      "semester": 6,
+      "kode": "SI-6038",
+      "matkul": "Statistika Komputasi",
+      "sks": 3,
+      "prasyarat": null,
+      "min_sks": null,
+      "item": null
+    }
+  ],
+  "rekap_data": {
+    "total_data_latih": 35722,
+    "total_matkul": 231,
+    "total_user_nim": 1622,
+    "total_user_sisfo": 612,
+    "total_user_siskom": 1007,
+    "target_users": 559
+  }
+}
