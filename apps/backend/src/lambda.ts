@@ -1,7 +1,6 @@
 import { createApp } from "./index";
 import { loadConfig } from "./config";       // SSM loader
 import { getPrisma } from "../prisma/dbPostgres"; // PostgreSQL
-import nim_to_user from "../nim_to_user.json";
 
 let app: ReturnType<typeof createApp>;
 
@@ -14,7 +13,7 @@ export const handler = async (event: any) => {
   await loadConfig(); // load SSM sekali, lalu di-cache
 
   if (!app) {
-    app = createApp(getPrisma, nim_to_user); // buat app setelah env ready
+    app = createApp(getPrisma); // buat app setelah env ready
   }
 
   // DEBUG ENV

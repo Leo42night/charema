@@ -4,8 +4,9 @@
   "workspaces": ["apps/*", "packages/*"],
   "scripts": {
     "dev": "bun run --filter '*' dev",
+    "devh": "bun run --filter '*' devh",
     "dev-be": "bun run --filter 'backend' dev",
-    "dev:turso": "bun run --filter '*' dev:turso",
+    "dev:pg": "bun run --filter '*' dev:pg",
     "build": "bun run --filter '*' build",
     "preview": "bun run --filter '*' preview"
   }

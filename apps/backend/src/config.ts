@@ -3,14 +3,10 @@ import { SSMClient, GetParametersCommand } from "@aws-sdk/client-ssm";
 const ssm = new SSMClient({ region: "us-east-1" });
 
 const SSM_PARAMS = [
-  "/monorepo/DATABASE_URL",
-  "/monorepo/DB_AUTH_TOKEN",
-  "/monorepo/GOOGLE_CLIENT_ID",
-  "/monorepo/GOOGLE_CLIENT_SECRET",
-  "/monorepo/GOOGLE_REDIRECT_URI",
-  "/monorepo/JWT_SECRET",
-  "/monorepo/API_KEY",
-  "/monorepo/FRONTEND_URL",
+  "/remaku/DATABASE_URL",
+  "/remaku/JWT_SECRET",
+  "/remaku/API_KEY",
+  "/remaku/FRONTEND_URL",
 ];
 
 let isLoaded = false;

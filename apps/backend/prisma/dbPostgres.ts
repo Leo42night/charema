@@ -5,9 +5,13 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import fs from "fs";
 import path from "path";
 
-const ca = fs.readFileSync(
-  path.join(process.cwd(), "cert/global-bundle.pem")
-).toString();
+// relative ke folder apps/backend
+const certPath = path.join(process.cwd(), "cert/global-bundle.pem");
+// console.log("Looking for cert at:", certPath);
+// console.log("File exists:", fs.existsSync(certPath));
+// console.log("DATABASE_URL:", process.env.DATABASE_URL!)
+
+const ca = fs.readFileSync(certPath).toString();
 
 // Kita buat singleton Prisma Client agar dipanggil ketika SSM sudah siap, dan tidak dibuat ulang setiap kali handler dipanggil (karena Lambda bisa reuse container).
 let prisma: PrismaClient;

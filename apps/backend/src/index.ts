@@ -1,23 +1,29 @@
 import { Elysia, t } from "elysia";
 import { cookie } from "@elysiajs/cookie";
 import { jwt } from "@elysiajs/jwt";
-import type { DbClient, NimToUser } from "./types";
+import type { DbClient } from "./types";
 import user_cf_results from "./data/user_cf_results.json";
-import { getTfjsModelUrls } from "./aws-s3";
+import user_to_nim from "./data/user_to_nim.json";
+// import { getTfjsModelUrls } from "./aws-s3";
+
+let prismaLocal: any;
+
+async function initializeDatabase() {
+  if (process.env.NODE_ENV === "dev") {
+    const { Prisma } = await import("./generated/prisma/client");
+    prismaLocal = Prisma;
+  } else {
+    const { Prisma } = await import("./generated/prisma-pg/client");
+    prismaLocal = Prisma;
+  }
+}
 
 const recommendations = user_cf_results as Record<string, Record<string, number>>;
+const userToNim = user_to_nim as Record<string, string>;
 
 interface ApiResponse<T> {
   data: T;
   message?: string;
-}
-
-interface UserPayload {
-  user_data: {
-    name: string;
-    email: string;
-    picture: string;
-  }
 }
 
 // Auth middleware — reusable di semua route yang butuh autentikasi
@@ -53,15 +59,18 @@ export const createApp = (getPrisma: () => DbClient) => {
       })
     )
 
-    // Middleware akses kontrol untuk /users
+    // Middleware akses kontrol untuk /data
     .onRequest(({ request, set }) => {
       const url = new URL(request.url);
       console.log(`[DEBUG] [${request.method}] ${url.pathname}`);
 
+      console.log("[DEBUG] AWS_LAMBDA_FUNCTION_NAME ", process.env.AWS_LAMBDA_FUNCTION_NAME);
+      if (!process.env.AWS_LAMBDA_FUNCTION_NAME) return;
+
       // Lewati preflight OPTIONS
       if (request.method === "OPTIONS") return;
 
-      if (!url.pathname.startsWith("/users")) return;
+      if (!url.pathname.startsWith("/data")) return;
 
       const origin = request.headers.get("origin");
       const frontendUrl = process.env.FRONTEND_URL ?? "http://localhost:5173";
@@ -96,6 +105,7 @@ export const createApp = (getPrisma: () => DbClient) => {
 
       return {
         data: {
+          version: "1.0.3",
           status: dbStatus === "ok" ? "ok" : "degraded",
           database: {
             status: dbStatus,
@@ -108,69 +118,271 @@ export const createApp = (getPrisma: () => DbClient) => {
       };
     })
 
-    .get("/model-chatbot", async () => {
-      return getTfjsModelUrls();
+    .get("/test", async () => {
+      const test = 1598;
+      const data = recommendations[test.toString()];
+      return { data, message: "Recom test" };
     })
+    .get("/data/recom-target", async () => {
+      const data = await getPrisma().recomTarget.findMany();
+      return { data, message: "Recom targets retrieved successfully" };
+    })
+    .get("/data/score", async () => {
+      const data = await getPrisma().score.findMany();
+      return { data, message: "Score retrieved successfully" };
+    })
+    .get("/data/achievement", async () => {
+      const data = await getPrisma().achievement.findMany();
+      return { data, message: "Achievement retrieved successfully" };
+    })
+    .get("/data/feedback", async () => {
+      const data = await getPrisma().feedback.findMany();
+      return { data, message: "Feedback retrieved successfully" };
+    })
+    // for daily use
+    .get("data/stats", async () => {
+      await initializeDatabase();
+      const responseData: any = {}
+      // n user sukses doing recomendation from all user
+      const uniqueUsers = await getPrisma().recomTarget.groupBy({
+        by: ['user_key'],
+      });
 
-    // -- Database Routes --
-    .get("/recom-option/:user_key", async ({ headers, jwt, status, params }) => {
-      // 1. Ambil token dari header 'Authorization'
-      const authHeader = headers['authorization'];
-      const { user_key } = params;
-      if (!authHeader) return status(401, "Token required");
+      // Panjang array uniqueUsers merepresentasikan jumlah user_key yang unik
+      responseData['n_rec_users'] = uniqueUsers.length;
 
-      const token = authHeader.split(' ')[1]; // Memisahkan 'Bearer' dari 'TOKEN'
 
-      // 2. Verifikasi Token
-      const payload = await jwt.verify(token);
-
-      if (!payload) return status(401, "Invalid or expired token");
-
-      if (!user_key) return status(400, "User key not found in token");
-
-      // 4. Gunakan user_key untuk ambil data dari database atau JSON
-      return {
-        success: true,
-        data: recommendations[user_key?.toString()]
+      // 3. Inisialisasi struktur object untuk 6 group
+      const groups: Record<string, number> = {
+        "sisfo23": 0, "sisfo24": 0, "sisfo25": 0,
+        "siskom23": 0, "siskom24": 0, "siskom25": 0
       };
-    }, {
-      params: t.Object({
-        user_key: t.String()
-      })
-    })
-    .get("/recom", async () => {
-      const users = await getPrisma().recomTarget.findMany();
-      const response: ApiResponse<{ user_key: number; matkul: string }[]> = {
-        data: users,
-        message: "User list retrieved",
-      };
-      return response;
-    })
-    .post("/recom", async ({ body }) => { // simpan input target ke database RecomTarget{user_key, matkuls}
-      const { data } = body as any;
-      const created = await getPrisma().recomTarget.create({ data });
-      return { data: created, message: "User created" };
-    })
-    .get("/recom/count", async () => {
-      const count = await getPrisma().recomTarget.count();
-      return { data: { count }, message: "User count retrieved" };
-    })
-    .post("/score", async ({ body }) => {
-      const { data } = body as any;
-      const created = await getPrisma().score.create({ data });
-      return { data: created, message: "Score created" };
-    })
-    .post("/score-prompt", async ({ body }) => {
-      const { data } = body as any;
-      const created = await getPrisma().scorePrompt.create({ data });
-      return { data: created, message: "Score prompt created" };
-    })
-    .put("/score-prompt", async ({ body }) => {
-      const { where, data } = body as any;
-      const updated = await getPrisma().scorePrompt.update({ where, data });
-      return { data: updated, message: "Score prompt updated" };
-    })
 
+      // 4. Looping setiap user_key dari database dan kelompokkan
+      uniqueUsers.forEach((user: any) => {
+        const userKey = user.user_key;
+        const nim = userToNim[userKey]; // Ambil NIM berdasarkan user_key
+
+        if (nim) {
+          // Ambil prodi berdasarkan prefix
+          let prodi = "";
+          if (nim.startsWith("H11")) {
+            prodi = "sisfo";
+          } else if (nim.startsWith("H10")) {
+            prodi = "siskom";
+          }
+
+          // Ambil angkatan dari indeks ke 5 & 6 (contoh: H1051231002 -> "23")
+          // Karena string di JS berbasis indeks 0, karakter ke-5 & 6 adalah .substring(5, 7)
+          const angkatan = nim.substring(5, 7);
+
+          // Gabungkan menjadi nama grup (ex: sisfo23, siskom24)
+          const groupKey = `${prodi}${angkatan}`;
+
+          // Jika grupnya valid (sesuai target 6 grup), masukkan ke dalam hitungan
+          if (groups[groupKey] !== undefined) {
+            groups[groupKey]++;
+          }
+        }
+      });
+
+      // 5. Masukkan hasil pengelompokan ke responseData
+      responseData['demographics'] = groups;
+
+
+      // n feedback submitted
+      responseData['n_feedback'] = await getPrisma().feedback.count();
+      // top 10 user achievement: n tags achieved
+      const isProduction = !!process.env.AWS_LAMBDA_FUNCTION_NAME;
+
+      const query = `
+        SELECT 
+          "user_key", 
+          json${isProduction ? "b" : ""}_array_length("tags") AS "total_tags"
+        FROM "Achievement"
+        ORDER BY "total_tags" DESC
+        LIMIT 10;
+      `;
+
+      const topUsers = await getPrisma().$queryRaw<
+        { user_key: number; total_tags: number }[]
+      >(prismaLocal.raw(query));
+
+      const topUsersWithNim = topUsers.map(user => {
+        // Ambil nim berdasarkan user_key (convert ke string karena key JSON adalah string)
+        const nim = userToNim[user.user_key] || "TIDAK DIKETAHUI";
+
+        return {
+          nim: nim,
+          total_tags: Number(user.total_tags) // Memastikan tipe data berupa number
+        };
+      });
+
+      // Output responseData siap dikirim ke frontend
+      responseData['top_10_users'] = topUsersWithNim;
+
+      
+      // -- score rating curve (chat & rekomendation)
+      const aggregation = await getPrisma().score.aggregate({
+        _avg: {
+          score_chat: true,
+          score_cf: true,
+        },
+        _count: {
+          user_key: true,
+        },
+      });
+
+      // Format ke dalam responseData
+      responseData['scores_stats'] = {
+        avg_score_chat: aggregation._avg.score_chat ?? 0,
+        avg_score_cf: aggregation._avg.score_cf ?? 0, // jika null, fallback ke 0
+        total_users: aggregation._count.user_key,
+      };
+
+      responseData['message'] = "Feedback retrieved successfully";
+
+      return responseData;
+    })
+    // -- Post Routes --
+    .post(
+      "/recom-target",
+      async ({ body, set }) => {
+        try {
+          const { user_key, matkuls } = body;
+
+          // Mengubah .create menjadi .upsert karena user_key bersifat unik
+          const result = await getPrisma().recomTarget.create({
+            data: {
+              user_key,
+              matkuls,
+            }
+          });
+
+          return {
+            data: result,
+            message: "Recommendation target processed successfully (created/updated)",
+          };
+        } catch (error: any) {
+          console.error("Prisma error:", error);
+          set.status = 500;
+          return {
+            error: "Gagal menyimpan data ke database",
+            detail: error.message,
+          };
+        }
+      },
+      {
+        body: t.Object({
+          user_key: t.Numeric(),
+          matkuls: t.Array(
+            t.Union([t.String(), t.Integer()]),
+            { error: "matkuls harus berupa array teks atau angka bulat" }
+          )
+        }),
+      }
+    )
+    .post(
+      "/progress",
+      async ({ body, set }) => {
+        try {
+          const { user_key, score_cf, score_chat, tags } = body;
+
+          // Menggunakan upsert agar jika user_key sudah ada, data akan diupdate (karena @id)
+          const savedScore = await getPrisma().score.upsert({
+            // 1. Kunci pencarian data berdasarkan primary key unik (user_key)
+            where: {
+              user_key,
+            },
+            // 2. Jika user_key SUDAH ADA, perbarui nilai skornya
+            update: {
+              score_cf,
+              score_chat,
+            },
+            // 3. Jika user_key BELUM ADA, buat baris data baru
+            create: {
+              user_key,
+              score_cf,
+              score_chat,
+            },
+          });
+
+          await getPrisma().achievement.upsert({
+            where: { user_key },
+            // Data yang akan dimasukkan jika data BELUM ada
+            create: {
+              user_key, // Jangan lupa masukkan field unique penanda relasi
+              tags,
+              // updatedAt otomatis terisi jika menggunakan @updatedAt di skema
+            },
+            // Data yang akan diperbarui jika data SUDAH ada
+            update: {
+              tags,
+              updatedAt: new Date()
+            },
+          });
+
+          return { data: savedScore, message: "Score & Tags saved successfully" };
+        } catch (error: any) {
+          set.status = 500;
+          return { error: "Failed to save score", detail: error.message };
+        }
+      },
+      {
+        body: t.Object({
+          user_key: t.Numeric({ error: "user_key harus berupa angka" }),
+          score_cf: t.Numeric({ error: "score_cf harus berupa angka (1-5)" }),
+          score_chat: t.Numeric({ error: "score_chat harus berupa angka (1-5)" }),
+          tags: t.Array(
+            t.String(),
+            { error: "tags harus berupa array teks" }
+          ),
+        }),
+      }
+    )
+    .post(
+      "/feedback",
+      async ({ body, set }) => {
+        try {
+          const { user_key, email, input, res_tag, res_message, feedback } = body;
+
+          // 1. Validasi Kondisional: Jika user_key kosong, EMAIL WAJIB ADA
+          if (!user_key && !email) {
+            set.status = 400; // Bad Request, bukan 500
+            return { error: "Gagal validasi", detail: "Email wajib diisi jika user_key tidak tersedia." };
+          }
+
+          // 2. Simpan ke database menggunakan Prisma
+          await getPrisma().feedback.create({
+            data: { user_key, email, input, res_tag, res_message, feedback },
+          });
+
+          let feedbackCount = 0;
+          if (user_key) {
+            feedbackCount = await getPrisma().feedback.count({
+              where: {
+                user_key: user_key,
+              },
+            });
+          }
+
+          return { count: feedbackCount, message: "Feedback submitted successfully" };
+        } catch (error: any) {
+          set.status = 500;
+          return { error: "Failed to submit feedback", detail: error.message };
+        }
+      },
+      {
+        body: t.Object({
+          user_key: t.Optional(t.Integer({ error: "user_key harus berupa angka bulat" })),
+          email: t.Optional(t.String({ format: 'email', error: "Format email tidak valid" })),
+          input: t.String({ error: "input teks wajib diisi" }),
+          res_tag: t.String({ error: "res_tag wajib diisi" }),
+          res_message: t.String({ error: "res_message wajib diisi" }),
+          feedback: t.String({ error: "feedback wajib diisi" }),
+        }),
+      }
+    )
     // Auth — Verify backend setelah login di frontend 
     .post("/auth/google", async ({ body, jwt }) => {
       const { access_token, user_data } = body;
@@ -183,31 +395,48 @@ export const createApp = (getPrisma: () => DbClient) => {
 
       if (!googleUser.email) throw new Error("Invalid Google Token");
 
-      // 4. Buat JWT Session
+      // 2. Buat JWT Session
       const sessionToken = await jwt.sign({ user_data });
 
-      return {
+      const responseData: any = {
         success: true,
         token: sessionToken
       };
+
+      // 3. gunakan user_cf_results.json, ambil rekomendasi berdasarkan user_key (jika ada)
+      if (user_data.user_key) {
+        responseData['recommendations'] = recommendations[user_data.user_key.toString()] || {};
+
+        // 4. number feedback, ambil feedback by user_key
+        responseData['user_feedback_number'] = await getPrisma().feedback.count({
+          where: {
+            user_key: user_data.user_key, // Kolom relasi user_key di tabel database
+          },
+        });
+
+        // 5. ambil RecomTarget terakhir
+        responseData['user_recomTarget_one'] = await getPrisma().recomTarget.findFirst({
+          where: {
+            user_key: user_data.user_key, // Kolom relasi user_key di tabel database
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+        });
+      }
+
+      return responseData;
     }, {
       body: t.Object({
         access_token: t.String(),
         user_data: t.Object({
           name: t.String(),
           email: t.String(),
-          picture: t.String()
+          picture: t.String(),
+          user_key: t.Optional(t.Integer())
         })
       })
     })
-
-    // Auth — cek sesi user dari JWT
-    .get("/auth/me", async ({ headers, jwt, set }) => {
-      const auth = makeAuthMiddleware(jwt);
-      const user = await auth({ headers, set });
-      if (!user) return { loggedIn: false };
-      return { loggedIn: true, user };
-    });
 
   return app;
 };

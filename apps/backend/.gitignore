@@ -7,6 +7,10 @@ dist
 .env.production
 
 src/generated/prisma
-src/data/item_matkul_list.json
+src/generated/prisma-pg
 src/data/user_cf_results.json
-tfjs_saved_model
+lambda-backend.zip
+dist-lambda
+dev/seed_backup.json
+cert/global-bundle.pem
+sql/backup_*.sql

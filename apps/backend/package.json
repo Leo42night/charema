@@ -4,11 +4,17 @@
   "private": true,
   "scripts": {
     "dev": "bun run --watch src/server.ts",
-    "dev:turso": "bun --env-file=.env.production src/server.ts"
+    "devh": "bun run --watch src/server.ts",
+    "dump": "bun prisma/dump-to-json.ts",
+    "client:pg": "bunx prisma generate --schema prisma/schema-pg.prisma",
+    "seed:pg": "bun --env-file=.env.production prisma/seed.ts",
+    "migrate:pg": "bun --env-file=.env.production prisma/migrate-pg.ts",
+    "seed:pg-json": "bun --env-file=.env.production prisma/seed-from-json.ts",
+    "encrypt": "bun dev/encrypt-json.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1045.0",
-    "@aws-sdk/client-ssm": "^3.1037.0",
+    "@aws-sdk/client-ssm": "^3.1046.0",
     "@aws-sdk/s3-request-presigner": "^3.1045.0",
     "@elysiajs/cookie": "^0.8.0",
     "@elysiajs/cors": "^1.4.1",
@@ -17,6 +23,9 @@
     "@prisma/adapter-libsql": "^7.8.0",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
+    "@types/crypto-js": "^4.2.2",
+    "@types/node": "^25.8.0",
+    "crypto-js": "^4.2.0",
     "elysia": "^1.4.28",
     "shared": "workspace:*"
   },

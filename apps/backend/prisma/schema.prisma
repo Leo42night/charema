@@ -14,10 +14,9 @@ datasource db {
 
 // simpan data target input mahasiswa, matkul yang diambil semester ini
 model RecomTarget { 
-  // user key key dari proses index user-items CF, value key matkuls disiman di JSON file
-  user_key  Int   @id // user_key sekarang menjadi identitas unik utama
-  // JSON [1,2,3,'new matkul`], value key matkuls disiman di JSON file
-  matkuls   Json
+  id          Int   @id @default(autoincrement())
+  user_key    Int // user key key dari proses index user-items CF, value key matkuls disiman di JSON file
+  matkuls     Json // JSON [1,2,3], value key matkuls disiman di JSON file
   createdAt  DateTime   @default(now())
 }
 
@@ -29,13 +28,21 @@ model Score {
   createdAt  DateTime   @default(now())
 }
 
-// simpan nilai prompt, index response, & score(true/false)
-model ScorePrompt {
+// simpan achivement
+model Achievement {
+  user_key   Int   @id // user_key sekarang menjadi identitas unik utama
+  tags       Json // ["greeting", "rekomendasi", dsb.]
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @default(now())
+}
+
+model Feedback {
   id          Int   @id @default(autoincrement())
-  user_key    Int
-  prompt      String
-  res_type    Int
-  res_index   Int
-  score       Int?
+  user_key    Int? // jika tidak ada maka email wajib
+  email       String?
+  input       String
+  res_tag     String // "greeting"
+  res_message String
+  feedback    String
   createdAt  DateTime   @default(now())
 }

@@ -1,0 +1,47 @@
+// !!> sayangnya prisma tidak dapat migrate pakai database_url selain file://, 
+// Jadi migrasi manual ubah query sqlite ke postgres.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma-pg"
+  engineType = "client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// simpan data target input mahasiswa, matkul yang diambil semester ini
+model RecomTarget { 
+  id          Int   @id @default(autoincrement())
+  user_key    Int // user key key dari proses index user-items CF, value key matkuls disiman di JSON file
+  matkuls     Json // JSON [1,2,3], value key matkuls disiman di JSON file
+  createdAt  DateTime   @default(now())
+}
+
+// Simapn hasil score terhadap "apakah hasil rekomendasi membantu? 1-5", apakah score membantu
+model Score {
+  user_key    Int   @id // user_key sekarang menjadi identitas unik utama
+  score_cf    Int
+  score_chat  Int
+  createdAt  DateTime   @default(now())
+}
+
+// simpan achivement
+model Achievement {
+  user_key   Int   @id // user_key sekarang menjadi identitas unik utama
+  tags       Json // ["greeting", "rekomendasi", dsb.]
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @default(now())
+}
+
+model Feedback {
+  id          Int   @id @default(autoincrement())
+  user_key    Int? // jika tidak ada maka email wajib
+  email       String?
+  input       String
+  res_tag     String
+  res_message String
+  feedback    String
+  createdAt  DateTime   @default(now())
+}

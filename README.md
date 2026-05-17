@@ -12,7 +12,7 @@ Main:
 > Target penelitian adalah mahasiswa akt 2023-2025. Prediction sudah dilakukan sebelumnya untuk mencangkup semua kemungkinan skenario. Jadi tidak perlu fitur inference, proses prediction lebih cepat.
 
 Additional:
-- **Google Auth** untuk Verifikasi Mahasiswa target penelitian.
+- **Google Auth** untuk Verifikasi Login Mahasiswa target penelitian.
 
 ## Tech Stack
 - Proyek Monorepo dikelola menggunakan [BunJs](https://bun.com/).
@@ -26,10 +26,10 @@ Additional:
 ## Progress Main Issue
 - [x] Layout Chatbot Responsive di mobile saat  keyboard aktif.
 - [x] Handle pastikan image setelah login benar-benar diload, agar tidak 404.
-- [ ] fitur chatbot.
-- [ ] fitur alur rekomendasi.
-- [ ] fitur achivement & reward.
-- [ ] fitur about berisi detail proyek, infromasi statistik dari BE dan info reward.
+- [x] fitur chatbot.
+- [x] fitur alur rekomendasi. (! fix bug minor skor tidak tampil)
+- [x] fitur achivement & reward. (! rapikan saved progress sebagai input)
+- [x] fitur about berisi detail proyek, infromasi statistik dari BE dan info reward. (! perlu realtime data statistik progress dari BE)
 
 ## Tools
 ```sh

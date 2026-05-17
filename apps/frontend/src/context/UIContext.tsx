@@ -14,7 +14,6 @@ export function UIProvider({ children }: { children: ReactNode }) {
   const [isInputFocused, setInputFocus] = useState(false);
   const [isNavbarVisible, setNavbarVisible] = useState(true);
 
-
   return (
     <UIContext.Provider value={{ isInputFocused, setInputFocus, isNavbarVisible, setNavbarVisible }}>
       {children}
