@@ -1,7 +1,7 @@
 import { useAuthStore } from "@/stores/useAuthStore"
 import githubIcon from "@/assets/github.svg"
 import { useEffect, useState } from "react";
-import { Database, Star, Trophy, Users } from "lucide-react";
+import { Database, Play, Star, Trophy, Users } from "lucide-react";
 import axios from "axios";
 import { BACKEND_URL } from "@/constants";
 
@@ -27,7 +27,7 @@ const AboutPage = () => {
     const fetchStats = async () => {
       try {
         const response = await axios.get(`${BACKEND_URL}/data/stats`); // Sesuaikan endpoint backend Anda
-        console.log("response.data", response.data)
+        // console.log("response.data", response.data)
         const scr = response.data.scores_stats;
         setStats({
           n_rec_users: response.data.n_rec_users || 0,
@@ -59,8 +59,8 @@ const AboutPage = () => {
             </span>
           </div>
           <p className="text-[9px] font-bold opacity-60 normal-case leading-tight">
-          *Dalam daftar hasil rekomendasi Neural Collaborative Filtering
-        </p>
+            *Dalam daftar hasil rekomendasi Neural Collaborative Filtering
+          </p>
 
           {/* PERBAIKAN UTAMA: 
             - py-2 memberikan ruang atas & bawah agar komponen paling atas/bawah dan efek SHADOW-nya tidak ter-clip.
@@ -235,6 +235,28 @@ const AboutPage = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Video Tutorial */}
+        <div className="border-2 border-black dark:border-neo-yellow bg-white dark:bg-zinc-900 shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#facc15]">
+          {/* Label header */}
+          <div className="flex items-center gap-2 px-3 py-2 border-b-2 border-black dark:border-neo-yellow bg-black text-neo-yellow">
+            <Play className="w-3 h-3 fill-neo-yellow" />
+            <span className="text-[10px] font-black uppercase tracking-widest">Tutorial Penggunaan</span>
+          </div>
+          {/* iframe YouTube */}
+          <div className="aspect-video w-full">
+            <iframe
+              src="https://www.youtube.com/embed/dQw4w9WgXcQ?rel=0&modestbranding=1"
+              title="Tutorial Penggunaan Akademik Bot"
+              className="w-full h-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+          <p className="px-3 py-2 text-[9px] font-bold text-neutral-500 dark:text-neutral-400 border-t-2 border-black dark:border-neo-yellow">
+            Tonton video di atas untuk memahami cara menggunakan sistem rekomendasi ini secara lengkap.
+          </p>
         </div>
 
         {/* Kontainer Static Data Latih */}

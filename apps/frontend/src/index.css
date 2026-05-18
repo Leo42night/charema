@@ -182,3 +182,6 @@
   .cb-scrollbar::-webkit-scrollbar-track { @apply bg-neo-bg; }
   .cb-scrollbar::-webkit-scrollbar-thumb { @apply bg-black; }
 }
+
+@layer utilities {
+}

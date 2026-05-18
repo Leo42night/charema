@@ -60,8 +60,9 @@ export const useUIStore = create<UIState>((set) => ({
       chatPresenter.setMessages([{
         id: Date.now() + 1,
         role: "assistant",
-        content: "Chat baru dimulai. Mari kita ulangi 👍",
+        content: "Chat baru dimulai. Mari kita ulangi 👍. Mau lihat tutorial?",
         timestamp: formatTimestamp(Date.now()),
+        showTourButton: true
       }]);
     }, 300);
   },

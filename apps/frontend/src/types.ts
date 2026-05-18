@@ -15,7 +15,8 @@ export interface Message {
     isError?: boolean;
     showMatkulModal?: boolean;
     selectedResults?: MataKuliah[]; // untuk menyimpan pilihan user di modal
-}
+    showTourButton?: boolean;
+}   
  
 export interface MataKuliah {
     item: number; // unique identifier dari training dataset item.

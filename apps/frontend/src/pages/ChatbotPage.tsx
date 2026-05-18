@@ -1,6 +1,6 @@
 // src/pages/ChatPage.tsx
 import { useState, useRef, useEffect } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, MapPin } from "lucide-react";
 
 import { useChatPresenter } from "../presenters/chatbot";
 import { useChatStore } from "@/stores/useChatStore";
@@ -16,34 +16,35 @@ import { useAuthStore } from "@/stores/useAuthStore";
 import { toast } from "sonner";
 import { BACKEND_URL } from "@/constants";
 import { useUIStore } from "@/stores/useUIStore";
+import TourGuide from "@/components/onboarding/TourGuide";
 
-// ─── Main Component ────────────────────────────────────────────────────────────
 export default function ChatbotPage() {
     const hasMounted = useRef(false);
+    const [startTour, setStartTour] = useState(false);
+    const [loaded, setLoaded] = useState(false);
+
     const user = useAuthStore((state) => state.user);
     const setSelectedMatkulItems = useAuthStore((state) => state.setSelectedMatkulItems);
+    const setMenuOpen = useUIStore((s) => s.setMenuOpen);
+    
 
-    const { messages, setMessages, isLoading, sendMessage } =
-        useChatPresenter();
-
-    const { toastTag, dismissToast} = useChatStore();
+    const { messages, setMessages, isLoading, sendMessage } = useChatPresenter();
+    const { toastTag, dismissToast } = useChatStore();
     const { setInputFocus, isNavbarVisible, setNavbarVisible } = useUI();
     const { setMsgCount } = useUIStore();
 
     const [input, setInput] = useState("");
-
-    // Matkul modal state
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedMK, setSelectedMK] = useState<MataKuliah[]>([]);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-    // >> effect >>
     // ── Initial greeting ───────────────────────────────────────────────────────
     useEffect(() => {
         if (hasMounted.current) return;
         hasMounted.current = true;
+        setLoaded(true);
 
         if (messages.length > 0) return;
         setTimeout(() => {
@@ -52,8 +53,9 @@ export default function ChatbotPage() {
                 {
                     id: Date.now() + 1,
                     role: "assistant",
-                    content: "Halo! Saya Akademik Bot untuk Mahasiswa.\n Ada yang bisa saya bantu?",
+                    content: "Halo! Saya Akademik Bot untuk Mahasiswa.\nAda yang bisa saya bantu?",
                     timestamp: formatTimestamp(Date.now()),
+                    showTourButton: true, // flag untuk render tombol tour
                 },
             ]);
         }, 400);
@@ -70,7 +72,7 @@ export default function ChatbotPage() {
         setMsgCount(messages.filter((m) => m.role === "user").length);
     }, [messages.length]);
 
-    // Matkul handlers
+    // ── Matkul handlers ────────────────────────────────────────────────────────
     const handleToggleMK = (mk: MataKuliah) => {
         setSelectedMK((prev) =>
             prev.some((s) => s.item === mk.item)
@@ -85,52 +87,55 @@ export default function ChatbotPage() {
 
     const handleConfirmMK = async () => {
         if (!selectedMK.length) return;
-        console.log("selectedMK", selectedMK); // score N/A issue
-        // return;
+
         const payload = {
-            user_key: user!.user_key, // Gantilah dengan cara Anda mendapatkan user_key
-            matkuls: selectedMK.map((mk) => mk.item)
+            user_key: user!.user_key,
+            matkuls: selectedMK.map((mk) => mk.item),
         };
-        console.log(user!.user_key, selectedMK)
-        // 1. Simpan rekomendasi target di Backend pakai axios (body: user_key, selectedMK)
+
         const response = await axios.post(`${BACKEND_URL}/recom-target`, payload);
 
-        // jika response sukses, Anda bisa menampilkan notifikasi atau langsung update chat dengan data yang dipilih. Di sini kita langsung update chat dengan data yang dipilih.
         if (response.data.message) {
             toast.success(response.data.message);
         } else {
             toast.error("Gagal menyimpan pilihan mata kuliah. Silakan coba lagi.");
-            return; // hentikan proses jika gagal menyimpan
+            return;
         }
 
-        // 2. Tampilkan Rank & Score di chat berdasarkan data yang dipilih
-        // Ambil data yang dipilih saat ini
         const finalSelection = [...selectedMK];
-        console.log(finalSelection);
-        setSelectedMatkulItems(finalSelection.map((s) => s.item)) // digunakan di page about
+        setSelectedMatkulItems(finalSelection.map((s) => s.item));
 
-        // Update messages: tambahkan properti 'selectedResults' ke pesan terakhir yang aktif
         setMessages((prev) => {
             const newMessages = [...prev];
             const lastMsgIndex = newMessages.length - 1;
-
             if (lastMsgIndex >= 0) {
                 newMessages[lastMsgIndex] = {
                     ...newMessages[lastMsgIndex],
-                    selectedResults: finalSelection, // Simpan data di sini
-                    showMatkulModal: false // Sembunyikan tombol "Pilih Mata Kuliah"
+                    selectedResults: finalSelection,
+                    showMatkulModal: false,
                 };
             }
             return newMessages;
         });
 
-        // Reset pilihan di modal agar bersih untuk berikutnya
         setSelectedMK([]);
         setModalOpen(false);
     };
 
+    if (!loaded) return null;
+
     return (
-        <>
+        <div className="w-full">
+            {startTour && (
+                <TourGuide
+                    start={startTour}
+                    setStartTour={setStartTour}
+                    onOpenDrawer={() => setMenuOpen(true)}
+                    onTourEnd={() => setStartTour(false)}
+                    onCloseDrawer={() => setMenuOpen(false)}
+                />
+            )}
+
             <AchievementToast tag={toastTag} onDismiss={dismissToast} />
 
             {modalOpen && (
@@ -152,7 +157,7 @@ export default function ChatbotPage() {
 
                 {/* ── Chat Area ──────────────────────────────────────────── */}
                 <div
-                    className="relative flex-1 flex flex-col min-w-0 overflow-hidden"
+                    className="main-message relative flex-1 flex flex-col min-w-0 overflow-hidden"
                     style={{
                         maxHeight: isNavbarVisible
                             ? "calc(var(--vh, 1vh) * 100 - 60px)"
@@ -161,20 +166,34 @@ export default function ChatbotPage() {
                 >
                     {/* Messages container */}
                     <div className="mb-2 flex-1 min-h-0 p-4 overflow-y-auto flex flex-col gap-4 cb-scrollbar">
-                        {messages.map((msg) => (
+                        {messages.map((msg, msgIdx) => (
                             <div
                                 key={msg.id}
-                                className={`${msg === messages[0] ? "mt-8" : ""} flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                                className={`${msgIdx === 0 ? "mt-8" : ""} flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                             >
                                 <div className="flex flex-col gap-2 max-w-[85%] sm:max-w-[75%]">
                                     <MessageBubble msg={msg} />
 
-                                    {/* Button tab buka modal — hanya muncul di pesan rekomendasi */}
+                                    {/* ── Tombol Start Tour — hanya di pesan pertama bot ── */}
+                                    {msg.showTourButton && (
+                                        <button
+                                            onClick={() => setStartTour(true)}
+                                            className="self-start flex items-center gap-2 px-3 py-2 border-2 border-black dark:border-neo-yellow
+                                                bg-neo-yellow text-black text-[10px] font-black uppercase tracking-wider
+                                                shadow-[3px_3px_0_0_#000] dark:shadow-[3px_3px_0_0_#facc15]
+                                                hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all"
+                                        >
+                                            <MapPin size={11} strokeWidth={3} />
+                                            Mulai Tour
+                                        </button>
+                                    )}
+
+                                    {/* Button buka modal matkul */}
                                     {msg.showMatkulModal && (
                                         <ButtonMatkulModal setModalOpen={setModalOpen} />
                                     )}
 
-                                    {/* Tampilkan Tabel HASIL jika ada data selectedResults di pesan ini */}
+                                    {/* Tabel hasil selectedResults */}
                                     {msg.selectedResults && msg.selectedResults.length > 0 && (
                                         <div className="mt-4 flex flex-col gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
                                             <div className="flex justify-between items-end px-1 opacity-50 font-black text-[9px] uppercase tracking-tighter">
@@ -188,9 +207,7 @@ export default function ChatbotPage() {
                                                     className="flex items-center justify-between p-3 border-2 border-black dark:border-neo-yellow bg-white dark:bg-zinc-900 shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#facc15]"
                                                 >
                                                     <div className="flex flex-col gap-1 min-w-0">
-                                                        <div className="text-[11px] font-black leading-tight truncate">
-                                                            {mk.nama}
-                                                        </div>
+                                                        <div className="text-[11px] font-black leading-tight truncate">{mk.nama}</div>
                                                         <div className="flex flex-wrap gap-2 text-[9px] opacity-70 items-center">
                                                             {mk.kode && (
                                                                 <span className="px-1 py-px border border-black dark:border-current font-bold">
@@ -205,20 +222,21 @@ export default function ChatbotPage() {
                                                     <div className="flex items-center gap-4 ml-4 shrink-0">
                                                         <div className="flex flex-col items-end text-right">
                                                             <span className="text-[8px] font-black uppercase opacity-50">Rank</span>
-                                                            <span className="text-md font-black italic">#{mk.rank || '-'}</span>
+                                                            <span className="text-md font-black italic">#{mk.rank || "-"}</span>
                                                         </div>
                                                         <div className="flex flex-col items-end min-w-10 py-1 px-2 bg-neo-yellow text-black border-l-2 border-black shadow-[-2px_0_0_0_#000]">
                                                             <span className="text-[7px] font-black uppercase">Score</span>
-                                                            <span className="text-[11px] font-black">{mk.score ? ((mk.score * 100).toFixed(2) + "%") : "N/A"}</span>
+                                                            <span className="text-[11px] font-black">
+                                                                {mk.score ? (mk.score * 100).toFixed(2) + "%" : "N/A"}
+                                                            </span>
                                                         </div>
                                                     </div>
                                                 </div>
                                             ))}
 
-                                            {/* Container Link Detail */}
                                             <div className="mt-2 flex justify-center">
                                                 <button
-                                                    onClick={() => window.location.href = '/about'}
+                                                    onClick={() => (window.location.href = "/about")}
                                                     className="group flex items-center gap-2 text-[9px] font-black uppercase tracking-widest hover:text-neo-yellow transition-colors"
                                                 >
                                                     <span className="border-b-2 border-black dark:border-neo-yellow pb-0.5">
@@ -296,6 +314,6 @@ export default function ChatbotPage() {
                     </div>
                 </div>
             </main>
-        </>
+        </div>
     );
 }

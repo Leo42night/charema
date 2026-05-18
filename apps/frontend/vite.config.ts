@@ -20,6 +20,7 @@ export default defineConfig(({ mode }) => {
   console.log("Berhasil env:", check)
 
   return {
+    base: "/",
     // Sekarang Anda bisa menggunakan variabel env di sini jika butuh, 
     // misalnya untuk mengganti port secara dinamis:
     build: {

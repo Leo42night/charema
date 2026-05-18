@@ -36,3 +36,16 @@ Additional:
 # hapus folder node_modules, apabila anda tidak sengaja add seluruh package di 1 folder saja
 FOR /d /r . %d in (node_modules) DO @IF EXIST "%d" rd /s /q "%d"
 ```
+
+
+## Build Process
+```sh
+cd apps/frontend
+bun run build
+aws s3 sync dist/ s3://www.charema.space/ --cache-control "max-age=31536000" --exclude "index.html" --delete
+aws s3 cp dist/index.html s3://www.charema.space/index.html   --cache-control "no-cache, no-store"
+```
+http://charema.space.s3-website-us-east-1.amazonaws.com 
+11:50 aktivasi DNS namecheap->cloudflare
+
+<!-- https://youtu.be/3kke7qAGWFQ?si=uLUTF34DIVzZ6tBG -->

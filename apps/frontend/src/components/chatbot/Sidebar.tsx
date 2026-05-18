@@ -16,7 +16,7 @@ const Sidebar = ({
     const chatPresenter = useChatPresenter(); // Panggil hook di top-level komponen (Valid)
 
     return (
-        <aside className="hidden sm:flex sm:pt-6 flex-col gap-4 w-48 shrink-0">
+        <aside className="tour-sidebar hidden sm:flex sm:pt-6 flex-col gap-4 w-48 shrink-0">
             <div className={`neo-box p-3 dark:border-neo-yellow bg-white dark:bg-zinc-900`}>
                 <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest border-b-2 border-black dark:border-neo-yellow pb-2 mb-3">
                     <span>{`${msgCount} Pesan`}</span>
@@ -78,8 +78,6 @@ const Sidebar = ({
             </div>
 
             <Achievement isDesktop={true} setModalScore={setModalScore} isOnline={isOnline} />
-
-            {/* Modal Popup */}
             <RatingModal isOpen={modalScore} onClose={() => setModalScore(false)} onSuccess={() => setModalScore(false)} />
         </aside>
     )

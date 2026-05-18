@@ -32,7 +32,7 @@ export default function Navbar() {
   const { login, isLoading } = useGoogleAuth();
 
   // State Hooks
-  const [menuOpen, setMenuOpen] = useState(false);
+  const {menuOpen, setMenuOpen} = useUIStore();
   const [isDark, setIsDark] = useState(false);
   const [avatarOpen, setAvatarOpen] = useState(false);
 
@@ -115,7 +115,7 @@ export default function Navbar() {
           {/* Desktop Links */}
           <ul className="hidden sm:flex items-center gap-2">
             {NAV_ITEMS.map((item) => (
-              <li key={item.label}>
+              <li key={item.label} id={item.label === "About" ? "nav-about" : ""}>
                 <NavLink
                   to={item.href}
                   className={({ isActive }) =>
@@ -212,7 +212,7 @@ export default function Navbar() {
                 )}
 
                 <span className="uppercase tracking-tight">
-                  {isLoading ? "Loading..." : <><span className="hidden sm:inline">Login</span><span className="hidden md:inline">Google</span></>}
+                  {isLoading ? "Loading..." : <span className="hidden sm:inline">Login Google</span>}
                 </span>
               </button>
             )}
@@ -249,6 +249,7 @@ export default function Navbar() {
           {NAV_ITEMS.map((item) => (
             <li key={item.label}>
               <NavLink
+                id={item.label === 'About' ? `drawer-nav-about` : ''}
                 to={item.href}
                 onClick={() => setMenuOpen(false)}
                 className={({ isActive }) =>
@@ -303,14 +304,16 @@ export default function Navbar() {
         </div>
 
         {/* 4. Komponen Fitur Tambahan */}
-        <Achievement
-          isDesktop={false}
-          setModalScore={(val) => {
-            setModalScore(val);
-            setMenuOpen(false); // Tutup drawer jika modal rating terbuka
-          }}
-          isOnline={isOnline}
-        />
+        <div id="drawer-achievement">
+          <Achievement
+            isDesktop={false}
+            setModalScore={(val) => {
+              setModalScore(val);
+              setMenuOpen(false); // Tutup drawer jika modal rating terbuka
+            }}
+            isOnline={isOnline}
+          />
+        </div>
 
         {/* Mobile button login */}
         {!user && (

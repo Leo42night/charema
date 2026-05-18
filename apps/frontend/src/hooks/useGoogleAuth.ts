@@ -51,9 +51,9 @@ export const useGoogleAuth = () => {
 
             // 3. Cari user_key berdasarkan NIM di file JSON
             const userKey = nim && nimMap[nim] ? nimMap[nim] :
-                (nim === "H1101221016" ? 555 : undefined); // 555, 1598
+                (nim === "H1101221016" ? 1436 : undefined); // 555, 1598
 
-            // console.log("userKey :", userKey);
+            console.log("userKey :", userKey);
 
             if (!userKey) {
                 toast.error("Akses Rekomendasi tidak diberikan!",
