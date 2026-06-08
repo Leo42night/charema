@@ -3,7 +3,7 @@
 ## Setup Data
 Data yang perlu disiapkan (build di [Google Collab NCF Rekomendasi](#))
 
-<details><summary>`src/data/user_cf_results.json`</summary>
+<details><summary>`src/data/user_cf_scores.json`</summary>
 
 Contoh isinya:
 ```json

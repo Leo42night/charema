@@ -2,7 +2,7 @@ import { Elysia, t } from "elysia";
 import { cookie } from "@elysiajs/cookie";
 import { jwt } from "@elysiajs/jwt";
 import type { DbClient } from "./types";
-import user_cf_results from "./data/user_cf_results.json";
+import user_cf_scores from "./data/user_cf_scores.json";
 import user_to_nim from "./data/user_to_nim.json";
 // import { getTfjsModelUrls } from "./aws-s3";
 
@@ -18,7 +18,7 @@ async function initializeDatabase() {
   }
 }
 
-const recommendations = user_cf_results as Record<string, Record<string, number>>;
+const recommendations = user_cf_scores as Record<string, Record<string, number>>;
 const userToNim = user_to_nim as Record<string, string>;
 
 interface ApiResponse<T> {
@@ -221,7 +221,7 @@ export const createApp = (getPrisma: () => DbClient) => {
       // Output responseData siap dikirim ke frontend
       responseData['top_10_users'] = topUsersWithNim;
 
-      
+
       // -- score rating curve (chat & rekomendation)
       const aggregation = await getPrisma().score.aggregate({
         _avg: {
@@ -403,7 +403,7 @@ export const createApp = (getPrisma: () => DbClient) => {
         token: sessionToken
       };
 
-      // 3. gunakan user_cf_results.json, ambil rekomendasi berdasarkan user_key (jika ada)
+      // 3. gunakan user_cf_scores.json, ambil rekomendasi berdasarkan user_key (jika ada)
       if (user_data.user_key) {
         responseData['recommendations'] = recommendations[user_data.user_key.toString()] || {};
 

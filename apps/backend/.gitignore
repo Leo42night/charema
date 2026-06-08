@@ -8,7 +8,7 @@ dist
 
 src/generated/prisma
 src/generated/prisma-pg
-src/data/user_cf_results.json
+src/data/user_cf_scores.json
 lambda-backend.zip
 dist-lambda
 dev/seed_backup.json

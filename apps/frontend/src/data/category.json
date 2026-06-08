@@ -1,0 +1,82 @@
+{
+  "category": {
+    "1": [
+      {
+        "semester": 6,
+        "kode": "SI-6037",
+        "matkul": "Pemikiran Sistemik",
+        "sks": 3,
+        "prasyarat": "-",
+        "wajib": 1,
+        "category": 1
+      }
+    ],
+    "2": [
+      {
+        "semester": 7,
+        "kode": "SI-7208",
+        "matkul": "Analisis Deret Waktu",
+        "sks": 3,
+        "prasyarat": "-",
+        "wajib": 1,
+        "category": 2
+      },
+      {
+        "semester": 6,
+        "kode": "SI-6038",
+        "matkul": "Statistika Komputasi",
+        "sks": 3,
+        "prasyarat": "-",
+        "wajib": 0,
+        "category": 2
+      }
+    ],
+    "3": [
+      {
+        "semester": 4,
+        "kode": "SI-4102",
+        "matkul": "Enterprise Resource Planning (ERP)",
+        "sks": 3,
+        "prasyarat": "SI-2013, SI-3016",
+        "wajib": 1,
+        "category": 3
+      },
+      {
+        "semester": 6,
+        "kode": "SI-6107",
+        "matkul": "Manajemen Investasi SI/TI",
+        "sks": 3,
+        "prasyarat": "SI-4028",
+        "wajib": 1,
+        "category": 3
+      }
+    ],
+    "4": [
+      {
+        "semester": 4,
+        "kode": "SI-4301",
+        "matkul": "Pengujian dan Implementasi Perangkat Lunak",
+        "sks": 3,
+        "prasyarat": "SI-3018, SI-3020",
+        "wajib": 0,
+        "category": 4
+      },
+      {
+        "semester": 4,
+        "kode": "SI-4302",
+        "matkul": "Sistem Basis Data Lanjut",
+        "sks": 3,
+        "prasyarat": "SI-3019",
+        "wajib": 0,
+        "category": 4
+      }
+    ]
+  },
+  "category_map": {
+    "0": "-",
+    "4": "Software Engineer",
+    "1": "Computer Engineering",
+    "2": "Data Analytics",
+    "3": "IT Governance"
+  }
+}
