@@ -36,7 +36,7 @@ Proyek Monorepo dikelola menggunakan [BunJs](https://bun.com/), kode dengan [Typ
 - Hasil response rekomendasi menggunakan API LLM Chatbot 
 
 ## Build Process
-Jika setup sudah selesai tapi ada perubahan berkala di kode.
+Jika setup sudah selesai tapi ada perubahan berkala di kode. [Detail cara build ke AWS](https://github.com/Leo42night/ppwl-caps)
 ### Frontend Build
 ```sh
 cd apps/frontend

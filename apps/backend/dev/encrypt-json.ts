@@ -1,3 +1,4 @@
+// Enkripsi model TFJS di Frontend agar tidak dapat dibaca langsung
 import fs from "fs";
 import path from "path";
 import CryptoJS from "crypto-js";
