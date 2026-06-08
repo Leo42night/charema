@@ -1,4 +1,4 @@
-// ganti App.tsx dengan ini untuk test model
+// ganti App.tsx dengan ini untuk test model TFJS
 import { useState } from "react";
 import { sendChatTfjs } from "@/lib/tfjsChat";
 
@@ -58,11 +58,10 @@ export default function ChatTest() {
         {messages.map((msg, i) => (
           <div
             key={i}
-            className={`max-w-[80%] p-2 border-2 border-black shadow-neo-sm text-sm ${
-              msg.role === "user"
+            className={`max-w-[80%] p-2 border-2 border-black shadow-neo-sm text-sm ${msg.role === "user"
                 ? "ml-auto bg-neo-yellow"
                 : "mr-auto bg-white dark:bg-zinc-800 dark:text-white"
-            }`}
+              }`}
           >
             {msg.text}
           </div>

@@ -8,7 +8,7 @@ async function initializeDatabase() {
   } else {
     const { getPrisma: prodDb } = await import("../prisma/dbPostgres");
     prisma = prodDb();
-  } 
+  }
 }
 
 async function main() {
@@ -28,10 +28,10 @@ async function main() {
   // 2. Seed Tabel RecomTarget
   await prisma.recomTarget.createMany({
     data: [
-      { user_key: 2101, matkuls: [1, 2, 3, "Kalkulus IA"] },
-      { user_key: 2102, matkuls: [4, 5, "Algoritma Pemrograman"] },
-      { user_key: 2103, matkuls: [2, "Struktur Data", 6, 7] },
-      { user_key: 2104, matkuls: [8, 9, 10] },
+      { user_key: 4041, matkuls: [1, 2, 3, "Kalkulus IA"] },
+      { user_key: 4042, matkuls: [4, 5, "Algoritma Pemrograman"] },
+      { user_key: 4043, matkuls: [2, "Struktur Data", 6, 7] },
+      { user_key: 4044, matkuls: [8, 9, 10] },
     ]
   });
   console.log("Selesai seeding: RecomTarget");
@@ -39,10 +39,10 @@ async function main() {
   // 3. Seed Tabel Score (user_key bertindak sebagai Primary Key unik)
   await prisma.score.createMany({
     data: [
-      { user_key: 2101, score_cf: 5, score_chat: 4 },
-      { user_key: 2102, score_cf: 3, score_chat: 5 },
-      { user_key: 2103, score_cf: 4, score_chat: 4 },
-      { user_key: 2104, score_cf: 2, score_chat: 3 },
+      { user_key: 4041, score_cf: 5, score_chat: 4 },
+      { user_key: 4042, score_cf: 3, score_chat: 5 },
+      { user_key: 4043, score_cf: 4, score_chat: 4 },
+      { user_key: 4044, score_cf: 2, score_chat: 3 },
     ]
   });
   console.log("Selesai seeding: Score");
@@ -51,10 +51,10 @@ async function main() {
   // Menyediakan variasi panjang array JSON untuk menguji fungsionalitas top 10 user Anda sebelumnya
   await prisma.achievement.createMany({
     data: [
-      { user_key: 2101, tags: ["dummy: Cum Laude", "Alpro Master", "Fast Learner"] }, // 3 tags
-      { user_key: 2102, tags: ["dummy: Math Whiz"] },                              // 1 tag
-      { user_key: 2103, tags: ["dummy: Overachiever", "Consistent", "Data Guru"] }, // 3 tags
-      { user_key: 2104, tags: [] },                                         // 0 tags (Empty Array)
+      { user_key: 4041, tags: ["dummy: Cum Laude", "Alpro Master", "Fast Learner"] }, // 3 tags
+      { user_key: 4042, tags: ["dummy: Math Whiz"] },                              // 1 tag
+      { user_key: 4043, tags: ["dummy: Overachiever", "Consistent", "Data Guru"] }, // 3 tags
+      { user_key: 4044, tags: [] },                                         // 0 tags (Empty Array)
     ]
   });
   console.log("Selesai seeding: Achievement");
@@ -64,7 +64,7 @@ async function main() {
   await prisma.feedback.createMany({
     data: [
       {
-        user_key: 2101,
+        user_key: 4041,
         email: "user101@mahasiswa.ac.id",
         input: "Rekomendasi semester 3 kurang akurat",
         res_tag: "greeting",
@@ -72,7 +72,7 @@ async function main() {
         feedback: "dummy: Tolong perbaiki data kurikulum terbaru"
       },
       {
-        user_key: 2102,
+        user_key: 4042,
         email: null, // Skenario: Hanya mengirim user_key tanpa email
         input: "Fitur chat AI sangat responsif",
         res_tag: "greeting",

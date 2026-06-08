@@ -14,3 +14,4 @@ dist-lambda
 dev/seed_backup.json
 cert/global-bundle.pem
 sql/backup_*.sql
+tfjs_saved_model/

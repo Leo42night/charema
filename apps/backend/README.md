@@ -1,34 +1,36 @@
-# backend
+# Tugas Akhir - Backend
 
-## Setup Data
-Data yang perlu disiapkan (build di [Google Collab NCF Rekomendasi](#))
+## Setup Data & Database
+1. Data JSON yang perlu disiapkan Google Collab NCF Rekomendasi (lihat `README.md` utama). gunakan template `user_cf_scores-dummy.json` untuk testing.
+2. Database:
+```sh
+cd apps/backend
+# -- local
+bun prisma migrate dev --name init
+bun prisma generate
+bun prisma db seed
+## koneksi `dev.db` ke HeidiSQL Sqlite, lihat isinya
 
-<details><summary>`src/data/user_cf_scores.json`</summary>
+# -- Production (Turso)
+## masuk ke migrations sql di backend yg berisi query "CREATE TABLE...", salin!
+## masuk ke Turso > Edit Data > SQL Console, Run query di situ.
+## Isi backend/package.json script "seed:turso": "bun --env-file=.env.production prisma/seed.ts", pastikan DATABASE_URL postgres di `.env.production` ada)
+bun seed:turso
+## lihat turso web apakah data terisi
 
-Contoh isinya:
-```json
-{
-  "580": {
-    "5": 0.826359212398529,
-    "10": 0.842545211315155,
-    "14": 0.9497200846672058,
-    "16": 0.8346580862998962,
-    "17": 0.7342939972877502,
-    "27": 0.6794408559799194,
-    "228": 0.7661208510398865
-  },
-  "581": {
-    "4": 0.7690456509590149,
-    "5": 0.9045738577842712,
-    ...
-  }
-}
+# -- Production (AWS RDS Postgres)
+bun prisma generate --schema prisma/schema-postgres.prisma
+## migrasi skema database ke RDS Postgres
+bun --env-file=.env.production prisma db push --force-reset
+## Isi backend/package.json script "bun --env-file=.env.production prisma/seed.ts", pastikan DATABASE_URL postgres di `.env.production` ada)
+bun seed:pg
+## lihat isinya di heidiSQL koneksi Postgres
 ```
-</details>
+Jika butuh install HeidiSQL ringan pakai [Setup Laragon Ini](https://drive.google.com/drive/folders/1w6Mz9eMF7XSbuu_Hc8chqfEiQondMfEK)
 
 ## AWS S3 Model Chatbot TFJS Deployment
-1. Build model chatbot pakai kode [Google Colab Chatbot FFNN](#)
-2. Simpan di `apps/backend/tfjs_saved_model/*` (agar juga dapat dipakai di local)
+1. Build model chatbot pakai kode [Google Colab Chatbot FFNN](lihat di `README.md` utama)
+2. Simpan di `apps/frontend/tfjs_saved_model/*` (agar juga dapat dipakai di local)
 3. Upload model ke AWS S3. Struktur yang benar:
 ```sh
 s3://your-bucket/tfjs-model/
@@ -50,9 +52,10 @@ Default output format [None]: json
 ```sh
 aws s3 sync ./tfjs_saved_model s3://chatbot-remaku/tfjs-model --cache-control "public, max-age=31536000, immutable"
 ```
-5. Private S3 + Signed URL 
 
 ## AWS Lambda Deployment
+Proyek ini di desain untuk kompatibel di-`deploy` ke AWS Lambda
+
 Setup AWS Parameter Store:
 ```sh
 /remaku/DATABASE_URL // isi AWS RDS Postgress
@@ -210,10 +213,3 @@ Setelah masuk ke *prompt* `sqlite>`, ketik dua perintah ini agar tampilan data r
 *   **Lihat seluruh isi data:** `SELECT * FROM Feedback;`
 *   **Lihat 5 data terbaru:** `SELECT * FROM RecomTarget ORDER BY createdAt DESC LIMIT 5;`
 *   **Hapus semua isi tabel:** `DELETE FROM Score;`
-
-
-## Bug Issue
-- Prisma tidak terima database url format https:// untuk postgres, hanya menerima file:// dari LibSQL, jadi perlu manual:
-   - pakai LLM ubah `migration.sql` (sqlite) jadi postgres. Simpan data ke `sql/skema-pg.sql`. 
-   - Run `bun migrate:pg` (berisi script "bun --env-file=.env.production prisma/migrate-pg.ts", pastikan DATABASE_URL postgres di `.env.production` ada). Database akan terisi dengan tabel baru (tambahkan DROP TABLE IF EXIST untuk reset sepenuhnya). 
-- Bagaimana skema prisma model di 1 file, tapi generator dan datasource file terpisah. 
