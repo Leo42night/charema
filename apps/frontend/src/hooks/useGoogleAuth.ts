@@ -15,8 +15,10 @@ export const useGoogleAuth = () => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const setAuth = useAuthStore((state) => state.setAuth);
-
-    const { setRecommendations, setFeedbackNumber, setAvailableMatkuls, setSelectedMatkulItems } = useAuthStore();
+    const setRecommendations = useAuthStore((s) => s.setRecommendations)
+    const setFeedbackNumber = useAuthStore((s) => s.setFeedbackNumber)
+    const setAvailableMatkuls = useAuthStore((s) => s.setAvailableMatkuls)
+    const setSelectedMatkulItems = useAuthStore((s) => s.setSelectedMatkulItems)
 
     const handleGoogleSuccess = async (tokenResponse: TokenResponse) => {
         try {
@@ -45,9 +47,6 @@ export const useGoogleAuth = () => {
             // Regex ini menangkap huruf di depan (jika ada) dan semua angka setelahnya sebelum tanda @
             const nimMatch = email.match(/^([a-zA-Z0-9]+)@/);
             const nim = nimMatch ? nimMatch[1].toUpperCase() : null;
-            // console.log("nimMap :", nimMap)
-            // console.log("nimMatch :", nimMatch)
-            // console.log("nim :", nim)
 
             // 3. Cari user_key berdasarkan NIM di file JSON
             const userKey = nim && nimMap[nim] ? nimMap[nim] :
@@ -60,7 +59,7 @@ export const useGoogleAuth = () => {
                     {
                         description: "Bukan mahasiswa Sisfo & Siskom akt. 2023-2025",
                         position: "top-center",
-                        descriptionClassName: "text-red-500! dark:text-neo-red font-medium" 
+                        descriptionClassName: "text-red-500! dark:text-neo-red font-medium"
                     }
                 );
                 // return;
@@ -99,14 +98,16 @@ export const useGoogleAuth = () => {
                     },
                     {} as Record<number, number>
                 );
-                setRecommendations(recWithIntKeys);
+                setRecommendations(recWithIntKeys); // ??? belum cek cache berguna
                 // notif pakai toast sonner
                 toast.success(`Anda dapat akses rekomendasi matkul.`, { position: "top-center" });
 
                 // simpan available matkuls ke Zustrand Store
-                const availableMatkuls = recommendationsToMatkul(recWithIntKeys);
-                // console.log("availableMatkuls", availableMatkuls)
-                setAvailableMatkuls(availableMatkuls);
+                const prodi = nim.slice(0, 3);
+
+                const recViewResult = recommendationsToMatkul(recWithIntKeys, prodi);
+                // console.log("recViewResult", recViewResult)
+                setAvailableMatkuls(recViewResult.matkuls);
             }
 
             if (backendRes.data.user_feedback_number && backendRes.data.user_feedback_number > 0) {

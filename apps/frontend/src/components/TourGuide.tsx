@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import type { CallBackProps, Step, TooltipRenderProps } from "react-joyride";
 import Joyride, { EVENTS, STATUS } from "react-joyride";
 import { X, ArrowRight, ArrowLeft, SkipForward, Play } from "lucide-react";
+import { TUTORIAL_YT } from "@/constants";
 
 interface TourGuideProps {
     start: boolean;
@@ -145,7 +146,7 @@ const WelcomeContent = () => (
         <div className="relative border-2 border-black overflow-hidden bg-black shadow-[4px_4px_0_0_#000]">
             <div className="aspect-video w-full">
                 <iframe
-                    src="https://www.youtube.com/embed/dQw4w9WgXcQ?rel=0&modestbranding=1"
+                    src={TUTORIAL_YT}
                     title="Perkenalan Sistem Akademik Bot"
                     className="w-full h-full"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

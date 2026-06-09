@@ -3,7 +3,7 @@ export interface UserData {
     given_name: string;
     email: string;
     picture: string;
-    user_key?: number; // derived from email/NIM, used for backend requests
+    user_key?: number; // from nim in email map into nim_to_user
 }
 
 export interface Message {
@@ -16,49 +16,48 @@ export interface Message {
     showMatkulModal?: boolean;
     selectedResults?: MataKuliah[]; // untuk menyimpan pilihan user di modal
     showTourButton?: boolean;
-}   
- 
-export interface MataKuliah {
-    item: number; // unique identifier dari training dataset item.
-    nama: string;
-    kode?: string | null;
-    sks?: number | null;
-    semester?: number | null;
-    dosen?: string | null;
-    score?: number | null; // untuk rekomendasi, bisa diisi dengan skor relevansi dari backend
-    rank?: number | null; // untuk rekomendasi, bisa diisi dengan peringkat berdasarkan skor seluruh data recommendations
 }
 
-export interface NilaiPrasyaratEntry {
+export interface MataKuliahData {
+    matkul: string;
+    dosen: string;
+    tahun: number; // tahun riwayat terbaru
+    sm: number; // 1 (genap), 7 (ganjil)
+    category: number; // label dari training embeding
+    kode: string | null;
+    sks: number | null;
+    semester?: number | null;
+    prasyarat?: string | null;
+    wajib?: number | null;
+    rank?: number; // untuk rekomendasi
+    score?: number; // untuk rekomendasi, bisa diisi dengan skor relevansi dari backend
+}
+
+export interface MataKuliah extends MataKuliahData {
+    item: number; // unique identifier dari training dataset item.
+}
+
+
+// hasil rekomendasi
+export interface CategoryResult {
+    category: string;
+    name: string;
+    totalScore: number;
+    count: number;
+}
+
+export interface CategoryMatkul {
     semester: number;
     kode: string;
     matkul: string;
     sks: number;
-    item: number;
+    prasyarat: string | null;
+    wajib: number;
+    category: number;
 }
 
-
-interface RatingData {
-    score_cf: number;
-    score_chat: number;
-}
-
-export interface AuthState {
-    user: UserData | null;
-    token: string | null;
-    recommendations: Record<number, number> | null;
-    availableMatkuls: MataKuliah[]; 
-    setAvailableMatkuls: (updater: MataKuliah[]) => void;
-    selectedMatkulItems: number[];
-    setSelectedMatkulItems: (items: number[]) => void;
-    rating: RatingData | null;
-
-    feedbackNumber: number; // ambil dari database backend
-    setFeedbackNumber: (updater: number | ((prev: number) => number)) => void;
-
-
-    setRecommendations: (recs: Record<number, number>) => void;
-    setRating: (rating: RatingData) => void;
-    setAuth: (user: UserData, token: string) => void;
-    logout: () => void;
+export interface RecommendationResult {
+    matkuls: MataKuliah[],
+    categories: CategoryResult[],
+    category_matkuls?: CategoryMatkul[]
 }

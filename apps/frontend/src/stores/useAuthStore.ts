@@ -1,8 +1,34 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { AuthState } from "../types";
+import type { UserData, MataKuliah } from "../types";
 import { toast } from "sonner";
 import { useChatStore } from "./useChatStore";
+
+
+interface RatingData {
+    score_cf: number;
+    score_chat: number;
+}
+
+export interface AuthState {
+    user: UserData | null;
+    token: string | null;
+    recommendations: Record<number, number> | null;
+    availableMatkuls: MataKuliah[];
+    setAvailableMatkuls: (matkuls: MataKuliah[]) => void;
+    selectedMatkulItems: number[];
+    setSelectedMatkulItems: (items: number[]) => void;
+    rating: RatingData | null;
+
+    feedbackNumber: number; // ambil dari database backend
+    setFeedbackNumber: (updater: number | ((prev: number) => number)) => void;
+
+
+    setRecommendations: (recs: Record<number, number>) => void;
+    setRating: (rating: RatingData) => void;
+    setAuth: (user: UserData, token: string) => void;
+    logout: () => void;
+}
 
 export const useAuthStore = create<AuthState>()(
     persist(
@@ -11,9 +37,9 @@ export const useAuthStore = create<AuthState>()(
             token: null,
             recommendations: null,
             availableMatkuls: [],
-            setAvailableMatkuls: (matkuls) => set({availableMatkuls: matkuls}),
+            setAvailableMatkuls: (matkuls) => set({ availableMatkuls: matkuls }),
             selectedMatkulItems: [],
-            setSelectedMatkulItems: (selectedMatkulItems) => set({selectedMatkulItems}),
+            setSelectedMatkulItems: (selectedMatkulItems) => set({ selectedMatkulItems }),
             rating: null,
 
             feedbackNumber: 0,

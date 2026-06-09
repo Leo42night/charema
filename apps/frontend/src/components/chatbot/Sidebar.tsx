@@ -1,7 +1,7 @@
 import Achievement from './Achievement'
 import { RatingModal } from './RatingModal';
 import { useUIStore } from '@/stores/useUIStore';
-import { useChatPresenter } from '@/presenters/chatbot';
+import { useChatPresenter } from '@/hooks/useChatPresenter';
 import useOnlineStatus from '@/hooks/useOnlineStatus';
 
 const Sidebar = ({
@@ -11,9 +11,13 @@ const Sidebar = ({
     isNavbarVisible: boolean;
     setNavbarVisible: (visible: boolean) => void;
 }) => {
+    const msgCount = useUIStore((s) => s.msgCount);
+    const resetChat = useUIStore((s) => s.resetChat);
+    const modalScore = useUIStore((s) => s.modalScore);
+    const setModalScore = useUIStore((s) => s.setModalScore);
+
     const isOnline = useOnlineStatus();
-    const { msgCount, resetChat, modalScore, setModalScore } = useUIStore();
-    const chatPresenter = useChatPresenter(); // Panggil hook di top-level komponen (Valid)
+    const chatPresenter = useChatPresenter(); // Panggil hook di top-level komponen
 
     return (
         <aside className="tour-sidebar hidden sm:flex sm:pt-6 flex-col gap-4 w-48 shrink-0">

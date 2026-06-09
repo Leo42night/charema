@@ -15,7 +15,9 @@ export const MessageBubble = ({ msg }: { msg: Message }) => {
     const [showFeedback, setShowFeedback] = useState(false);
     const [feedbackInput, setFeedbackInput] = useState("");
     const messages = useChatStore((state) => state.messages);
-    const { user, token, setFeedbackNumber } = useAuthStore();
+    const user = useAuthStore((s) => s.user);
+    const token = useAuthStore((s) => s.token);
+    const setFeedbackNumber = useAuthStore((s) => s.setFeedbackNumber);
 
     const showBtnFeedback = !!user && msg.role === "assistant" && msg.id !== messages[0]?.id
 

@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from "react";
 import { ArrowRight, MapPin } from "lucide-react";
 
-import { useChatPresenter } from "../presenters/chatbot";
+import { useChatPresenter } from "../hooks/useChatPresenter";
 import { useChatStore } from "@/stores/useChatStore";
 import { useUI } from "../context/UIContext";
 import { formatTimestamp } from "@/lib/utils";
@@ -16,22 +16,25 @@ import { useAuthStore } from "@/stores/useAuthStore";
 import { toast } from "sonner";
 import { BACKEND_URL } from "@/constants";
 import { useUIStore } from "@/stores/useUIStore";
-import TourGuide from "@/components/onboarding/TourGuide";
+import TourGuide from "@/components/TourGuide";
 
 export default function ChatbotPage() {
+    // store state
+    const user = useAuthStore((state) => state.user);
+    const toastTag = useChatStore((s) => s.toastTag);
+    const messages = useChatStore((s) => s.messages);
+    const setSelectedMatkulItems = useAuthStore((state) => state.setSelectedMatkulItems);
+    const setMenuOpen = useUIStore((s) => s.setMenuOpen);
+    const dismissToast = useChatStore((s) => s.dismissToast);
+    const setMsgCount = useUIStore((s) => s.setMsgCount);
+
+    // logic presenter
+    const { setMessages, isLoading, sendMessage } = useChatPresenter();
+    const { setInputFocus, isNavbarVisible, setNavbarVisible } = useUI();
+
     const hasMounted = useRef(false);
     const [startTour, setStartTour] = useState(false);
     const [loaded, setLoaded] = useState(false);
-
-    const user = useAuthStore((state) => state.user);
-    const setSelectedMatkulItems = useAuthStore((state) => state.setSelectedMatkulItems);
-    const setMenuOpen = useUIStore((s) => s.setMenuOpen);
-    
-
-    const { messages, setMessages, isLoading, sendMessage } = useChatPresenter();
-    const { toastTag, dismissToast } = useChatStore();
-    const { setInputFocus, isNavbarVisible, setNavbarVisible } = useUI();
-    const { setMsgCount } = useUIStore();
 
     const [input, setInput] = useState("");
     const [modalOpen, setModalOpen] = useState(false);
@@ -174,7 +177,7 @@ export default function ChatbotPage() {
                                 <div className="flex flex-col gap-2 max-w-[85%] sm:max-w-[75%]">
                                     <MessageBubble msg={msg} />
 
-                                    {/* ── Tombol Start Tour — hanya di pesan pertama bot ── */}
+                                    {/* ── BTN Start Tour — hanya di pesan pertama bot ── */}
                                     {msg.showTourButton && (
                                         <button
                                             onClick={() => setStartTour(true)}
@@ -188,7 +191,7 @@ export default function ChatbotPage() {
                                         </button>
                                     )}
 
-                                    {/* Button buka modal matkul */}
+                                    {/* Btn Open Modal Select Matkul */}
                                     {msg.showMatkulModal && (
                                         <ButtonMatkulModal setModalOpen={setModalOpen} />
                                     )}
@@ -207,7 +210,7 @@ export default function ChatbotPage() {
                                                     className="flex items-center justify-between p-3 border-2 border-black dark:border-neo-yellow bg-white dark:bg-zinc-900 shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#facc15]"
                                                 >
                                                     <div className="flex flex-col gap-1 min-w-0">
-                                                        <div className="text-[11px] font-black leading-tight truncate">{mk.nama}</div>
+                                                        <div className="text-[11px] font-black leading-tight truncate">{mk.matkul}</div>
                                                         <div className="flex flex-wrap gap-2 text-[9px] opacity-70 items-center">
                                                             {mk.kode && (
                                                                 <span className="px-1 py-px border border-black dark:border-current font-bold">

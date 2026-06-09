@@ -105,7 +105,7 @@ export default function MatkulModal({
                     ) : (
                         results.map((mk) => {
                             const isSel = selectedMK.some(
-                                (s) => s.nama === mk.nama && s.item === mk.item
+                                (s) => s.matkul === mk.matkul && s.item === mk.item
                             );
                             return (
                                 <div
@@ -119,7 +119,7 @@ export default function MatkulModal({
                                 >
                                     <div className="flex flex-col gap-1">
                                         <div className="text-[11px] font-black leading-tight">
-                                            {mk.nama}
+                                            {mk.matkul}
                                         </div>
                                         <div className="flex flex-wrap gap-2 text-[9px] opacity-70">
                                             {mk.kode && (
@@ -155,7 +155,7 @@ export default function MatkulModal({
                                         key={index}
                                         className="flex items-center gap-1 bg-neo-yellow text-black border-2 border-black px-1.5 py-0.5 text-[9px] font-mono font-black"
                                     >
-                                        <span>{mk.kode ? `${mk.kode} — ` : ""}{mk.nama}</span>
+                                        <span>{mk.kode ? `${mk.kode} — ` : ""}{mk.matkul}</span>
                                         <button
                                             onClick={(e) => { e.stopPropagation(); onRemove(mk.item); }}
                                             className="font-black text-red-700 hover:text-red-900 leading-none ml-1"

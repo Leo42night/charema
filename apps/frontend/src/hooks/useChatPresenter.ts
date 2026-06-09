@@ -6,9 +6,11 @@ import { useChatStore } from "@/stores/useChatStore";
 import { useAuthStore } from "@/stores/useAuthStore";
 
 export const useChatPresenter = () => {
-  const { messages, setMessages, appendMessage, clearMessages, unlockTag } =
-    useChatStore();
   const user = useAuthStore((state) => state.user); // Ambil data user dari store
+  const setMessages = useChatStore((s) => s.setMessages);
+  const appendMessage = useChatStore((s) => s.appendMessage);
+  const clearMessages = useChatStore((s) => s.clearMessages);
+  const unlockTag = useChatStore((s) => s.unlockTag);
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -80,7 +82,6 @@ export const useChatPresenter = () => {
   };
 
   return {
-    messages,
     setMessages,
     clearMessages,
     isLoading,

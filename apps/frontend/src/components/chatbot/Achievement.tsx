@@ -18,13 +18,14 @@ interface AchievementProps {
 }
 
 const Achievement: React.FC<AchievementProps> = ({ isDesktop, setModalScore, isOnline }) => {
-  const feedbackNumber = useAuthStore((state) => state.feedbackNumber)
-  const [saveActive, setSaveActive] = useState(false);
-  const { tags, percentageAchieved } = useChatStore();
   const user = useAuthStore((s) => s.user);
+  const feedbackNumber = useAuthStore((state) => state.feedbackNumber)
+  const tags = useChatStore((s) => s.tags);
+  const percentageAchieved = useChatStore((s) => s.percentageAchieved);
+  const [saveActive, setSaveActive] = useState(false);
 
   useEffect(() => {
-    if(user?.user_key) {
+    if (user?.user_key) {
       setSaveActive(true);
     } else {
       setSaveActive(false);

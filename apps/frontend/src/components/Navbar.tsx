@@ -6,7 +6,7 @@ import { useAuthStore } from "@/stores/useAuthStore";
 import { useGoogleAuth } from "@/hooks/useGoogleAuth";
 import Achievement from "./chatbot/Achievement";
 import { useUIStore } from "@/stores/useUIStore";
-import { useChatPresenter } from "@/presenters/chatbot";
+import { useChatPresenter } from "@/hooks/useChatPresenter";
 import useOnlineStatus from "@/hooks/useOnlineStatus";
 import { RatingModal } from "./chatbot/RatingModal";
 
@@ -16,23 +16,21 @@ const NAV_ITEMS = [
 ];
 
 export default function Navbar() {
-  // ==========================================
-  // 1. SEMUA HOOK HARUS BERADA DI PALING ATAS
-  // ==========================================
-
-  // Zustand & Custom Hooks (Zustand menggunakan useSyncExternalStore di dalamnya)
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
-  const { isNavbarVisible } = useUI();
-  const { msgCount, resetChat, modalScore, setModalScore } = useUIStore();
+  const msgCount = useUIStore((s) => s.msgCount);
+  const resetChat = useUIStore((s) => s.resetChat);
+  const modalScore = useUIStore((s) => s.modalScore);
+  const setModalScore = useUIStore((s) => s.setModalScore);
+  const menuOpen = useUIStore((s) => s.menuOpen);
+  const setMenuOpen = useUIStore((s) => s.setMenuOpen);
+
   const chatPresenter = useChatPresenter();
   const isOnline = useOnlineStatus();
-
-  // Google Auth Hook (Harus selalu dipanggil tanpa bersyarat)
+  const { isNavbarVisible } = useUI();
   const { login, isLoading } = useGoogleAuth();
 
   // State Hooks
-  const {menuOpen, setMenuOpen} = useUIStore();
   const [isDark, setIsDark] = useState(false);
   const [avatarOpen, setAvatarOpen] = useState(false);
 

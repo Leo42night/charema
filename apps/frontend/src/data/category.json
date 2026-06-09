@@ -6,7 +6,7 @@
         "kode": "SI-6037",
         "matkul": "Pemikiran Sistemik",
         "sks": 3,
-        "prasyarat": "-",
+        "prasyarat": null,
         "wajib": 1,
         "category": 1
       }
@@ -17,7 +17,7 @@
         "kode": "SI-7208",
         "matkul": "Analisis Deret Waktu",
         "sks": 3,
-        "prasyarat": "-",
+        "prasyarat": null,
         "wajib": 1,
         "category": 2
       },
@@ -26,7 +26,7 @@
         "kode": "SI-6038",
         "matkul": "Statistika Komputasi",
         "sks": 3,
-        "prasyarat": "-",
+        "prasyarat": null,
         "wajib": 0,
         "category": 2
       }

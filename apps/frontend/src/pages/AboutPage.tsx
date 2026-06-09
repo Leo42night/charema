@@ -3,7 +3,7 @@ import githubIcon from "@/assets/github.svg"
 import { useEffect, useState } from "react";
 import { Database, Play, Star, Trophy, Users } from "lucide-react";
 import axios from "axios";
-import { BACKEND_URL } from "@/constants";
+import { BACKEND_URL, TUTORIAL_YT } from "@/constants";
 
 const AboutPage = () => {
   const availableMatkuls = useAuthStore((state) => state.availableMatkuls);
@@ -81,7 +81,7 @@ const AboutPage = () => {
                 >
                   <div className="flex flex-col gap-1 min-w-0 flex-1">
                     <div className={`text-[11px] font-black leading-tight truncate ${!isSelected && "text-zinc-500 dark:text-zinc-400"}`}>
-                      {mk.nama}
+                      {mk.matkul}
                     </div>
                     <div className="flex flex-wrap gap-2 text-[9px] opacity-70 items-center">
                       {mk.kode && (
@@ -247,7 +247,7 @@ const AboutPage = () => {
           {/* iframe YouTube */}
           <div className="aspect-video w-full">
             <iframe
-              src="https://www.youtube.com/embed/dQw4w9WgXcQ?rel=0&modestbranding=1"
+              src={TUTORIAL_YT}
               title="Tutorial Penggunaan Akademik Bot"
               className="w-full h-full"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
