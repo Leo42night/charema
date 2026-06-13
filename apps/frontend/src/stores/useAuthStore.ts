@@ -1,9 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { UserData, MataKuliah } from "../types";
+import type { UserData } from "../types";
 import { toast } from "sonner";
 import { useChatStore } from "./useChatStore";
-
 
 interface RatingData {
     score_cf: number;
@@ -13,49 +12,44 @@ interface RatingData {
 export interface AuthState {
     user: UserData | null;
     token: string | null;
-    recommendations: Record<number, number> | null;
-    availableMatkuls: MataKuliah[];
-    setAvailableMatkuls: (matkuls: MataKuliah[]) => void;
-    selectedMatkulItems: number[];
-    setSelectedMatkulItems: (items: number[]) => void;
+    recScores: [string, number][] | null; // dari BE user_cf_scores.json
+    selectedMatkulItems: number[]; // di modal select matkul 
     rating: RatingData | null;
-
     feedbackNumber: number; // ambil dari database backend
-    setFeedbackNumber: (updater: number | ((prev: number) => number)) => void;
 
-
-    setRecommendations: (recs: Record<number, number>) => void;
-    setRating: (rating: RatingData) => void;
     setAuth: (user: UserData, token: string) => void;
+    setRecScores: (scores: [string, number][] | null) => void;
+    setSelectedMatkulItems: (items: number[]) => void;
+    setFeedbackNumber: (updater: number | ((prev: number) => number)) => void;
+    setRating: (rating: RatingData) => void;
     logout: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
+    // cache to localhost
     persist(
         (set) => ({
             user: null,
             token: null,
-            recommendations: null,
-            availableMatkuls: [],
-            setAvailableMatkuls: (matkuls) => set({ availableMatkuls: matkuls }),
-            selectedMatkulItems: [],
-            setSelectedMatkulItems: (selectedMatkulItems) => set({ selectedMatkulItems }),
+            recScores: null,
+            selectedMatkulItems: [], // riwayat matkul yang di select
             rating: null,
-
             feedbackNumber: 0,
+            setAuth: (user, token) => set({ user, token }),
+            setRecScores: (scores) => set({ recScores: scores }),
+            setSelectedMatkulItems: (selectedMatkulItems) => set({ selectedMatkulItems }),
+
             setFeedbackNumber: (updater) =>
                 set((state) => ({
                     feedbackNumber:
                         typeof updater === "function" ? updater(state.feedbackNumber) : updater,
                 })),
 
-            setRecommendations: (recs) => set({ recommendations: recs }),
             setRating: (rating) => set({ rating }),
 
-            setAuth: (user, token) => set({ user, token }),
 
             logout: () => {
-                set({ user: null, token: null, recommendations: null, rating: null, feedbackNumber: 0, availableMatkuls: [] })
+                set({ user: null, token: null, recScores: null, selectedMatkulItems: [], rating: null, feedbackNumber: 0 })
                 useChatStore.getState().clearMessages();
                 useChatStore.getState().clearAchievements();
                 toast("Logged out successfully");

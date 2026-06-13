@@ -4,7 +4,6 @@ import { useAuthStore } from "../stores/useAuthStore"; // sesuaikan path store A
 import type { UserData } from "../types";
 import nimToUserJson from "../data/nim_to_user.json"; // sesuaikan path file json Anda
 import { toast } from "sonner";
-import { recommendationsToMatkul } from "@/lib/utils";
 import { BACKEND_URL } from "@/constants";
 import { useState } from "react";
 
@@ -15,9 +14,8 @@ export const useGoogleAuth = () => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const setAuth = useAuthStore((state) => state.setAuth);
-    const setRecommendations = useAuthStore((s) => s.setRecommendations)
     const setFeedbackNumber = useAuthStore((s) => s.setFeedbackNumber)
-    const setAvailableMatkuls = useAuthStore((s) => s.setAvailableMatkuls)
+    const setRecScores = useAuthStore((s) => s.setRecScores)
     const setSelectedMatkulItems = useAuthStore((s) => s.setSelectedMatkulItems)
 
     const handleGoogleSuccess = async (tokenResponse: TokenResponse) => {
@@ -47,10 +45,10 @@ export const useGoogleAuth = () => {
             // Regex ini menangkap huruf di depan (jika ada) dan semua angka setelahnya sebelum tanda @
             const nimMatch = email.match(/^([a-zA-Z0-9]+)@/);
             const nim = nimMatch ? nimMatch[1].toUpperCase() : null;
-
             // 3. Cari user_key berdasarkan NIM di file JSON
             const userKey = nim && nimMap[nim] ? nimMap[nim] :
-                (nim === "H1101221016" ? 1436 : undefined); // 555, 1598
+                (nim === "H1101221016" ? 1369 : 4404);
+            // 519 (siskom), 1369 (sisfo), 4404 = H110123100D untuk akun dummy
 
             console.log("userKey :", userKey);
 
@@ -86,28 +84,16 @@ export const useGoogleAuth = () => {
             // 5. Simpan ke Zustand Store (otomatis masuk localStorage jika pakai persist)
             setAuth(userData, jwtToken);
             toast.success(`Anda dapat akses untuk beri kritik chat.`, { position: "top-center" });
+            if (userKey === 4404) toast.info(`Akun bukan target, diberi akses Test Public User`);
 
             // 6. (case user adalah pengguna & rekomendasi ada) simpan recomendation Tampilkan notifikasi dapat akses fitur rekomendasi.
             if (backendRes.data.recommendations) {
-                const rec: Record<number, number> = backendRes.data.recommendations;
-                const recWithIntKeys: Record<number, number> = Object.entries(rec).reduce(
-                    (acc, [key, value]) => {
-                        const intKey = Number.parseInt(key, 10); // Mengonversi "213.0" menjadi 213
-                        acc[intKey] = value;
-                        return acc;
-                    },
-                    {} as Record<number, number>
-                );
-                setRecommendations(recWithIntKeys); // ??? belum cek cache berguna
                 // notif pakai toast sonner
                 toast.success(`Anda dapat akses rekomendasi matkul.`, { position: "top-center" });
-
-                // simpan available matkuls ke Zustrand Store
-                const prodi = nim.slice(0, 3);
-
-                const recViewResult = recommendationsToMatkul(recWithIntKeys, prodi);
-                // console.log("recViewResult", recViewResult)
-                setAvailableMatkuls(recViewResult.matkuls);
+                const rec: Record<string, number> = backendRes.data.recommendations;
+                const sortedScores = Object.entries(rec)
+                    .sort(([, a], [, b]) => b - a);
+                setRecScores(sortedScores); // matkul, category score, category_matkul
             }
 
             if (backendRes.data.user_feedback_number && backendRes.data.user_feedback_number > 0) {
@@ -115,10 +101,9 @@ export const useGoogleAuth = () => {
                 toast.success("Feedback data dimuat.", { position: "top-center" });
             }
 
-            if (backendRes.data.user_recomTarget_one) {
-                // kirim pesan sistem, data rekomendasi anda di load
+            if (backendRes.data.user_recomTarget_one) { // jika sudah pernah submit matkul
                 console.log(backendRes.data.user_recomTarget_one);
-                setSelectedMatkulItems(backendRes.data.user_recomTarget_one.matkuls) // digunakan di page about
+                setSelectedMatkulItems(backendRes.data.user_recomTarget_one.matkuls)
             }
 
             // console.log("Login berhasil!");

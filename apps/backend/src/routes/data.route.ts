@@ -47,7 +47,7 @@ export const dataRoutes = (getPrisma: () => DbClient) =>
         .get("/test", async () => {
             const test = 1598;
             const data = recommendations[test.toString()];
-            return { data, message: "Recom test" };
+            return { data, message: `Recom test user_cf_scores ${1598}` };
         })
         .get("/recom-target", async () => {
             const data = await getPrisma().recomTarget.findMany();

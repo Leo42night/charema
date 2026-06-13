@@ -2,15 +2,19 @@
 
 ## Setup Data & Database
 1. Data JSON yang perlu disiapkan Google Collab NCF Rekomendasi (lihat `README.md` utama). gunakan template `user_cf_scores-dummy.json` untuk testing.
-2. Database:
+2. Database: setup Awal agar jalan di local
 ```sh
 cd apps/backend
 # -- local
-bun prisma migrate dev --name init
+bun prisma migrate dev --name init # update *.prisma -> update db & buat sql migrasi 
 bun prisma generate
+bun prisma generate --schema prisma/schema-pg.prisma
 bun prisma db seed
 ## koneksi `dev.db` ke HeidiSQL Sqlite, lihat isinya
-
+bun prisma db push # jika ada update *.prisma -> update db
+```
+3. Database: Deployment ke production
+```sh
 # -- Production (Turso)
 ## masuk ke migrations sql di backend yg berisi query "CREATE TABLE...", salin!
 ## masuk ke Turso > Edit Data > SQL Console, Run query di situ.

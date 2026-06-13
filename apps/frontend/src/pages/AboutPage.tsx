@@ -1,13 +1,59 @@
+import { useEffect, useMemo, useState } from "react";
 import { useAuthStore } from "@/stores/useAuthStore"
 import githubIcon from "@/assets/github.svg"
-import { useEffect, useState } from "react";
+import category from "@/data/category.json";
+import rekapJson from "@/data/rekap.json";
 import { Database, Play, Star, Trophy, Users } from "lucide-react";
 import axios from "axios";
 import { BACKEND_URL, TUTORIAL_YT } from "@/constants";
+import { recommendationsToMatkul } from "@/lib/recommendationsToMatkul";
+import type { CategoryData } from "@/types";
+
+interface RekapData {
+  total_data_latih: number;
+  total_matkul: number;
+  total_user_nim: number;
+  total_sisfo_23: number;
+  total_sisfo_24: number;
+  total_sisfo_25: number;
+  total_siskom_23: number;
+  total_siskom_24: number;
+  total_siskom_25: number;
+  target_users: number;
+}
 
 const AboutPage = () => {
-  const availableMatkuls = useAuthStore((state) => state.availableMatkuls);
+  const { category_map } = category as CategoryData; // map untuk name
+  const rekap = rekapJson as RekapData; // map untuk name
+
   const selectedMatkulItems = useAuthStore((state) => state.selectedMatkulItems);
+  const recoms = recommendationsToMatkul();
+  const availableMatkuls = recoms?.matkuls;
+  const categories = recoms?.categories;
+  const category_matkuls = recoms?.category_matkuls;
+  const topCategoryKey = recoms?.topCategoryKey;
+  const totalMatkul = availableMatkuls ? Object.keys(availableMatkuls).length : 0;
+
+  const [activeTooltipId, setActiveTooltipId] = useState<number | null>(null);
+
+  // hitung selected Category (ubah tiap ada seleksi baru)
+  const countCatSelected = availableMatkuls ? useMemo(() => {
+    const countMap: Record<string, number> = {};
+
+    // Lakukan pencarian instan O(1) langsung menggunakan key objek Record
+    for (const mkid of selectedMatkulItems) {
+      // Ambil data langsung menggunakan ID matkul (mkid) sebagai key
+      const matkul = availableMatkuls[mkid];
+
+      // Validasi jika data tidak ditemukan atau tidak memiliki properti category
+      if (!matkul || matkul.category == null) continue;
+
+      const catKey = String(matkul.category);
+      countMap[catKey] = (countMap[catKey] ?? 0) + 1;
+    }
+
+    return countMap;
+  }, [selectedMatkulItems, availableMatkuls]) : null;
 
   // State untuk menyimpan data statistik backend
   const [stats, setStats] = useState<{
@@ -49,9 +95,113 @@ const AboutPage = () => {
   return (
     <div className="w-full h-full overflow-y-auto px-4 py-6 md:flex md:flex-row md:items-start md:justify-center md:gap-6">
 
-      {/* Kolom Kiri: Daftar Mata Kuliah Pilihan */}
-      {availableMatkuls && availableMatkuls.length > 0 && (
+      {/* --- Kolom Kiri: Rekomendasi -- */}
+      {categories && countCatSelected && availableMatkuls && totalMatkul > 0 && (
         <div className="mb-6 md:mb-0 w-full md:max-w-xl flex flex-col gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+
+          {/* === SCOREBOARD KATEGORI === */}
+          <div className="flex flex-col gap-1">
+            <div className="px-1 opacity-50 font-black text-[9px] uppercase tracking-tighter mb-1">
+              Kategori Relevan
+            </div>
+            {categories.map((cat, idx) => {
+              const isTop = idx === 0;
+              const maxScore = categories[0]?.totalScore ?? 1;
+              const barWidth = Math.round((cat.totalScore / maxScore) * 100);
+
+              return (
+                <div
+                  key={cat.category}
+                  className={`relative flex items-center gap-2 px-2 py-1.5 border-2 overflow-hidden
+                            ${isTop
+                      ? 'border-black dark:border-neo-yellow bg-neo-yellow text-black shadow-[3px_3px_0_0_#000] dark:shadow-[3px_3px_0_0_#facc15]'
+                      : 'border-black dark:border-zinc-700 bg-white dark:bg-zinc-900'
+                    }`}
+                >
+                  {/* progress bar background */}
+                  {!isTop && (
+                    <div
+                      className="absolute inset-y-0 left-0 bg-zinc-100 dark:bg-zinc-800"
+                      style={{ width: `${barWidth}%` }}
+                    />
+                  )}
+
+                  {/* rank badge */}
+                  <span className={`relative z-10 text-[9px] font-black w-4 shrink-0 opacity-60 ${isTop ? 'text-black' : ''}`}>
+                    #{idx + 1}
+                  </span>
+
+                  {/* name */}
+                  <span className={`relative z-10 flex-1 text-[10px] font-black truncate ${isTop ? 'text-black' : ''}`}>
+                    Kategori {category_map[cat.category]}
+                  </span>
+
+                  {/* count */}
+                  <span className={`relative z-10 text-[8px] font-bold opacity-60 shrink-0 ${isTop ? 'text-black' : ''}`}>
+                    {cat.count} matkul
+                  </span>
+
+                  {/* count selected */}
+                  <span className={`relative z-10 text-[8px] font-bold opacity-60 shrink-0 ${isTop ? 'text-black' : ''}`}>
+                    ({countCatSelected[cat.category] ?? 0} dipilih)
+                  </span>
+
+                  {/* total score */}
+                  <div className={`relative z-10 flex flex-col items-end shrink-0 min-w-10.5 px-1.5 py-0.5
+                            ${isTop
+                      ? 'bg-black text-neo-yellow'
+                      : 'bg-neo-yellow text-black border-l border-black dark:border-neo-yellow'
+                    }`}>
+                    <span className="text-[6px] font-black uppercase leading-none">Score</span>
+                    <span className="text-[10px] font-black leading-tight">
+                      {cat.totalScore.toFixed(3)}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* === KURIKULUM KATEGORI TERATAS === */}
+          {category_matkuls && category_matkuls.length > 0 && (
+            <div className="flex flex-col gap-1">
+              <div className="px-1 opacity-50 font-black text-[9px] uppercase tracking-tighter mb-1">
+                Kurikulum — {category_map[categories[0].category] ?? `Kategori ${topCategoryKey}`}
+              </div>
+              <div className="flex flex-col gap-1">
+                {category_matkuls.map((cm, idx) => (
+                  <div
+                    key={cm.kode ?? idx}
+                    className="flex items-center gap-2 px-2 py-1.5 border border-black dark:border-zinc-700 bg-white dark:bg-zinc-900"
+                  >
+                    {/* semester badge */}
+                    <span className="text-[8px] font-black opacity-40 shrink-0 w-6 text-right">
+                      Smt {cm.semester}
+                    </span>
+
+                    {/* kode */}
+                    <span className="text-[8px] font-black border border-black dark:border-zinc-600 px-1 shrink-0 opacity-70">
+                      {cm.kode}
+                    </span>
+
+                    {/* nama */}
+                    <span className="text-[10px] font-semibold flex-1 truncate">{cm.matkul}</span>
+
+                    {/* sks */}
+                    <span className="text-[8px] opacity-50 shrink-0">{cm.sks} SKS</span>
+
+                    {/* wajib badge */}
+                    {cm.wajib === 1 && (
+                      <span className="text-[7px] font-black px-1 bg-neo-yellow text-black border border-black shrink-0">
+                        Wajib
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="flex justify-between items-end px-1 font-black text-[9px] uppercase tracking-tighter text-neutral-800">
             <span>Matkul yang anda pilih</span>
             <span>
@@ -67,8 +217,14 @@ const AboutPage = () => {
             - px-1 memberikan ruang agar shadow kanan-kiri tidak terpotong batas scrollbar.
           */}
           <div className="max-h-[50vh] md:max-h-[80vh] overflow-y-auto px-1 py-2 flex flex-col gap-3 border-y border-zinc-200/50 dark:border-zinc-800/50">
-            {availableMatkuls.map((mk, idx) => {
+            {Object.values(availableMatkuls).map((mk, idx) => {
               const isSelected = selectedMatkulItems.includes(mk.item);
+
+              // Dosen Tooltip
+              const dosenList = mk.dosen?.split('\n').map(d => d.trim()).filter(Boolean) ?? [];
+              const dosenPreview = dosenList[0] ?? '-';
+              const hasMultipleDosen = dosenList.length > 1;
+              const isTooltipOpen = activeTooltipId === mk.item;
 
               return (
                 <div
@@ -92,8 +248,53 @@ const AboutPage = () => {
                       {mk.sks != null && <span>{mk.sks} SKS</span>}
                       {mk.semester != null && <span>Smt {mk.semester}</span>}
                     </div>
+
+                    {/* Row 2: dosen (with tooltip popup) */}
+                    <div
+                      className="relative inline-flex max-w-full items-center gap-1 min-w-0"
+                      onMouseEnter={() => setActiveTooltipId(mk.item)} // Desktop hover masuk
+                      onMouseLeave={() => setActiveTooltipId(null)}   // Desktop hover keluar
+                    >
+                      <span className="text-[8px] font-black uppercase opacity-40 shrink-0">Dosen</span>
+                      <span className="text-[9px] font-semibold truncate opacity-80">{dosenPreview}</span>
+                      {hasMultipleDosen && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation(); // PENTING: Mencegah onToggle(mk) terpicu!
+                              setActiveTooltipId(isTooltipOpen ? null : mk.item); // Toggle khusus baris ini
+                            }}
+                            className="px-1.5 py-0.5 text-[8px] font-black shrink-0 cursor-pointer border-2 border-black bg-neo-yellow text-black shadow-neo-sm select-none"
+                          >
+                            +{dosenList.length - 1}
+                          </button>
+
+                          {/* TOOLTIP */}
+                          <div
+                            className={`absolute bottom-full mb-1.5 left-0 h-min z-50 flex-col gap-1 max-w-75 p-2 border-2 border-black dark:border-neo-yellow bg-white dark:bg-zinc-900 text-foreground shadow-neo-sm neo-box
+                                                            ${isTooltipOpen ? 'flex' : 'hidden'}`}
+                          >
+                            {dosenList.map((d, i) => (
+                              <span key={i} className="text-[9px] font-semibold leading-tight text-nowrap">
+                                {i + 1}. {d}
+                              </span>
+                            ))}
+                          </div>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Row 3: prasyarat (opsional) */}
+                    {mk.prasyarat && (
+                      <div className="flex items-center gap-1">
+                        <span className="text-[8px] font-black uppercase opacity-40 shrink-0">Prasyarat</span>
+                        <span className="text-[9px] opacity-70 truncate">{mk.prasyarat}</span>
+                      </div>
+                    )}
                   </div>
 
+                  {/* Right Side */}
                   <div className="flex items-center gap-3 ml-3 shrink-0">
                     <div className="flex flex-col items-end text-right">
                       <span className="text-[8px] font-black uppercase opacity-50">Rank</span>
@@ -153,7 +354,7 @@ const AboutPage = () => {
                     {stats.n_rec_users} <span className="text-[10px] font-bold font-sans opacity-60 ml-0.5">Users</span>
                   </span>
                   <span className="text-[9px] font-bold opacity-60 shrink-0 uppercase tracking-tight">
-                    Target: 559
+                    Target: {rekap.target_users}
                   </span>
                 </div>
               </div>
@@ -175,7 +376,7 @@ const AboutPage = () => {
                   <span className="font-black text-sm">
                     {stats.demographics?.sisfo23 || 0}{" "}
                     <span className="text-[10px] font-normal opacity-60">
-                      / 66 ({(((stats.demographics?.sisfo23 || 0) / 66) * 100).toFixed(0)}%)
+                      / {rekap.total_sisfo_23} ({(((stats.demographics?.sisfo23 || 0) / rekap.total_sisfo_23) * 100).toFixed(0)}%)
                     </span>
                   </span>
                 </div>
@@ -184,7 +385,7 @@ const AboutPage = () => {
                   <span className="font-black text-sm">
                     {stats.demographics?.siskom23 || 0}{" "}
                     <span className="text-[10px] font-normal opacity-60">
-                      / 117 ({(((stats.demographics?.siskom23 || 0) / 117) * 100).toFixed(0)}%)
+                      / {rekap.total_siskom_23} ({(((stats.demographics?.siskom23 || 0) / rekap.total_siskom_23) * 100).toFixed(0)}%)
                     </span>
                   </span>
                 </div>
@@ -197,7 +398,7 @@ const AboutPage = () => {
                   <span className="font-black text-sm">
                     {stats.demographics?.sisfo24 || 0}{" "}
                     <span className="text-[10px] font-normal opacity-60">
-                      / 66 ({(((stats.demographics?.sisfo24 || 0) / 66) * 100).toFixed(0)}%)
+                      / {rekap.total_sisfo_24} ({(((stats.demographics?.sisfo24 || 0) / rekap.total_sisfo_24) * 100).toFixed(0)}%)
                     </span>
                   </span>
                 </div>
@@ -206,7 +407,7 @@ const AboutPage = () => {
                   <span className="font-black text-sm">
                     {stats.demographics?.siskom24 || 0}{" "}
                     <span className="text-[10px] font-normal opacity-60">
-                      / 118 ({(((stats.demographics?.siskom24 || 0) / 118) * 100).toFixed(0)}%)
+                      / {rekap.total_siskom_24} ({(((stats.demographics?.siskom24 || 0) / rekap.total_siskom_24) * 100).toFixed(0)}%)
                     </span>
                   </span>
                 </div>
@@ -219,7 +420,7 @@ const AboutPage = () => {
                   <span className="font-black text-sm">
                     {stats.demographics?.sisfo25 || 0}{" "}
                     <span className="text-[10px] font-normal opacity-60">
-                      / 78 ({(((stats.demographics?.sisfo25 || 0) / 78) * 100).toFixed(0)}%)
+                      / {rekap.total_sisfo_25} ({(((stats.demographics?.sisfo25 || 0) / rekap.total_sisfo_25) * 100).toFixed(0)}%)
                     </span>
                   </span>
                 </div>
@@ -228,7 +429,7 @@ const AboutPage = () => {
                   <span className="font-black text-sm">
                     {stats.demographics?.siskom25 || 0}{" "}
                     <span className="text-[10px] font-normal opacity-60">
-                      / 114 ({(((stats.demographics?.siskom25 || 0) / 114) * 100).toFixed(0)}%)
+                      / {rekap.total_siskom_25} ({(((stats.demographics?.siskom25 || 0) / rekap.total_siskom_25) * 100).toFixed(0)}%)
                     </span>
                   </span>
                 </div>
@@ -270,7 +471,7 @@ const AboutPage = () => {
               </h3>
             </div>
             <p className="text-[9px] font-bold text-neutral-600 dark:text-neutral-400 mt-1 leading-relaxed">
-              Data diambil dari nilai akademik <span className="font-black text-black dark:text-white">1,622 Mahasiswa</span> pada rentang waktu semester <span className="font-black text-black dark:text-white">2021 (Ganjil) – 2025 (Genap)</span>.
+              Data diambil dari nilai akademik <span className="font-black text-black dark:text-white">{rekap.total_user_nim.toLocaleString('en-US')} Mahasiswa</span> pada rentang waktu semester <span className="font-black text-black dark:text-white">2021 (Ganjil) – 2025 (Genap)</span>.
             </p>
           </div>
 
@@ -278,11 +479,11 @@ const AboutPage = () => {
           <div className="grid grid-cols-2 gap-2 mt-2.5">
             <div className="border-2 border-black dark:border-neutral-700 p-2 bg-blue-100 dark:bg-blue-950/40 flex flex-col justify-between shadow-[2px_2px_0_0_#000] dark:shadow-[2px_2px_0_0_rgba(0,0,0,0.5)]">
               <span className="text-[9px] font-black uppercase opacity-60 leading-none dark:text-blue-300">Jumlah Matkul</span>
-              <span className="text-xl font-black mt-1 leading-none dark:text-blue-400">231</span>
+              <span className="text-xl font-black mt-1 leading-none dark:text-blue-400">{rekap.total_matkul}</span>
             </div>
             <div className="border-2 border-black dark:border-neutral-700 p-2 bg-green-100 dark:bg-green-950/40 flex flex-col justify-between shadow-[2px_2px_0_0_#000] dark:shadow-[2px_2px_0_0_rgba(0,0,0,0.5)]">
               <span className="text-[9px] font-black uppercase opacity-60 leading-none dark:text-green-300">Jumlah Dataset</span>
-              <span className="text-xl font-black mt-1 leading-none dark:text-green-400">35,722</span>
+              <span className="text-xl font-black mt-1 leading-none dark:text-green-400">{rekap.total_data_latih.toLocaleString("en-US")}</span>
             </div>
           </div>
 
@@ -293,13 +494,6 @@ const AboutPage = () => {
               Rentang Waktu Tidak Tersedia:
             </div>
             <ul className="flex flex-col gap-1 text-[9px] font-bold text-neutral-700 dark:text-neutral-300">
-              <li className="flex items-center justify-between border-b border-black/5 dark:border-white/5 pb-0.5 last:border-0 last:pb-0">
-                <div className="flex items-center gap-1.5">
-                  <span className="px-1 py-px bg-black text-white dark:bg-zinc-700 font-black text-[7px] tracking-wide shrink-0">RESISKOM</span>
-                  <span>2023 Ganjil</span>
-                </div>
-                <span className="opacity-50 text-[8px] font-normal">(Juli-Desember)</span>
-              </li>
               <li className="flex items-center justify-between border-b border-black/5 dark:border-white/5 pb-0.5 last:border-0 last:pb-0">
                 <div className="flex items-center gap-1.5">
                   <span className="px-1 py-px bg-black text-white dark:bg-zinc-700 font-black text-[7px] tracking-wide shrink-0">RESISKOM</span>

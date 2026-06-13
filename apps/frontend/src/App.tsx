@@ -1,3 +1,4 @@
+// src/App.tsx
 import { RouterProvider, createBrowserRouter, Outlet } from "react-router-dom";
 
 import Navbar from "@/components/Navbar";

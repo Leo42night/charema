@@ -11,6 +11,8 @@
   --color-neo-bg: oklch(95.5% 0.01 70);      /* Background krem pucat */
   --color-neo-red: oklch(65% 0.25 25);       /* Merah brutalist */
   --color-neo-green: oklch(85% 0.28 150);    /* Neon green */
+  --color-neo-blue: oklch(60% 0.25 250);     /* Biru Elektrik Brutalist (Ganjil) */
+  --color-neo-purple: oklch(65% 0.23 300);   /* Ungu Brutalist (Genap) */
 
   /* 1. Putih Gading (Ivory) - Lebih hangat, selaras dengan kuning tapi lebih terang */
   --color-neo-white-warm: oklch(98% 0.015 95);

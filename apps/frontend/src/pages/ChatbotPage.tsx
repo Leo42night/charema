@@ -1,6 +1,8 @@
-// src/pages/ChatPage.tsx
+// !!! auto scroll bottom awal load
+import axios from "axios";
+import { toast } from "sonner";
 import { useState, useRef, useEffect } from "react";
-import { ArrowRight, MapPin } from "lucide-react";
+import { MapPin } from "lucide-react";
 
 import { useChatPresenter } from "../hooks/useChatPresenter";
 import { useChatStore } from "@/stores/useChatStore";
@@ -8,15 +10,14 @@ import { useUI } from "../context/UIContext";
 import { formatTimestamp } from "@/lib/utils";
 import AchievementToast from "@/components/chatbot/AchievementToast";
 import MatkulModal from "@/components/chatbot/MatkulModal";
-import type { MataKuliah } from "@/types";
 import { ButtonMatkulModal, MessageBubble } from "@/components/chatbot/LittleElements";
 import Sidebar from "@/components/chatbot/Sidebar";
-import axios from "axios";
 import { useAuthStore } from "@/stores/useAuthStore";
-import { toast } from "sonner";
 import { BACKEND_URL } from "@/constants";
 import { useUIStore } from "@/stores/useUIStore";
 import TourGuide from "@/components/TourGuide";
+import RekomendasiResult from "@/components/chatbot/RekomendasiMsg";
+import { elysiaErr } from "@/lib/elysiaErr";
 
 export default function ChatbotPage() {
     // store state
@@ -38,7 +39,7 @@ export default function ChatbotPage() {
 
     const [input, setInput] = useState("");
     const [modalOpen, setModalOpen] = useState(false);
-    const [selectedMK, setSelectedMK] = useState<MataKuliah[]>([]);
+    const [selectedMKIds, setSelectedMKIds] = useState<number[]>([]);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -75,82 +76,45 @@ export default function ChatbotPage() {
         setMsgCount(messages.filter((m) => m.role === "user").length);
     }, [messages.length]);
 
-    // ── Matkul handlers ────────────────────────────────────────────────────────
-    const handleToggleMK = (mk: MataKuliah) => {
-        setSelectedMK((prev) =>
-            prev.some((s) => s.item === mk.item)
-                ? prev.filter((s) => s.item !== mk.item)
-                : [...prev, mk]
-        );
-    };
-
-    const handleRemoveMK = (item: number) => {
-        setSelectedMK((prev) => prev.filter((s) => s.item !== item));
-    };
-
+    // ── Matkul handlers ───────────────────────────────────────────────────────
     const handleConfirmMK = async () => {
-        if (!selectedMK.length) return;
+        if (!selectedMKIds.length) return;
 
         const payload = {
             user_key: user!.user_key,
-            matkuls: selectedMK.map((mk) => mk.item),
+            matkul_ids: selectedMKIds.map((item) => item),
         };
-
-        const response = await axios.post(`${BACKEND_URL}/recom-target`, payload);
-
-        if (response.data.message) {
+        try {
+            const response = await axios.post(`${BACKEND_URL}/recom-target`, payload);
             toast.success(response.data.message);
-        } else {
+            setSelectedMatkulItems(selectedMKIds); // dipakan di about
+
+            // message juga harus berisi category
+            setMessages((prev) => {
+                const newMessages = [...prev];
+                const lastMsgIndex = newMessages.length - 1;
+                if (lastMsgIndex >= 0) {
+                    newMessages[lastMsgIndex] = {
+                        ...newMessages[lastMsgIndex],
+                        selectedMatkulIds: selectedMKIds,
+                        showMatkulModal: false,
+                    };
+                }
+                return newMessages;
+            });
+        } catch (err) {
+            elysiaErr(err);
             toast.error("Gagal menyimpan pilihan mata kuliah. Silakan coba lagi.");
-            return;
+        } finally {
+            setSelectedMKIds([]);
+            setModalOpen(false);
         }
-
-        const finalSelection = [...selectedMK];
-        setSelectedMatkulItems(finalSelection.map((s) => s.item));
-
-        setMessages((prev) => {
-            const newMessages = [...prev];
-            const lastMsgIndex = newMessages.length - 1;
-            if (lastMsgIndex >= 0) {
-                newMessages[lastMsgIndex] = {
-                    ...newMessages[lastMsgIndex],
-                    selectedResults: finalSelection,
-                    showMatkulModal: false,
-                };
-            }
-            return newMessages;
-        });
-
-        setSelectedMK([]);
-        setModalOpen(false);
     };
 
     if (!loaded) return null;
 
     return (
         <div className="w-full">
-            {startTour && (
-                <TourGuide
-                    start={startTour}
-                    setStartTour={setStartTour}
-                    onOpenDrawer={() => setMenuOpen(true)}
-                    onTourEnd={() => setStartTour(false)}
-                    onCloseDrawer={() => setMenuOpen(false)}
-                />
-            )}
-
-            <AchievementToast tag={toastTag} onDismiss={dismissToast} />
-
-            {modalOpen && (
-                <MatkulModal
-                    selectedMK={selectedMK}
-                    onToggle={handleToggleMK}
-                    onRemove={handleRemoveMK}
-                    onConfirm={handleConfirmMK}
-                    onClose={() => setModalOpen(false)}
-                />
-            )}
-
             <main className="flex-1 flex flex-col sm:flex-row gap-4 px-3 py-1 sm:p-6 sm:pt-0 max-w-250 mx-auto w-full transition-all duration-300 ease-in-out">
                 {/* ── Sidebar ─────────────────────────────────────────────── */}
                 <Sidebar
@@ -161,6 +125,7 @@ export default function ChatbotPage() {
                 {/* ── Chat Area ──────────────────────────────────────────── */}
                 <div
                     className="main-message relative flex-1 flex flex-col min-w-0 overflow-hidden"
+                    // handle mobile responsive untuk virtual keyboard
                     style={{
                         maxHeight: isNavbarVisible
                             ? "calc(var(--vh, 1vh) * 100 - 60px)"
@@ -196,59 +161,9 @@ export default function ChatbotPage() {
                                         <ButtonMatkulModal setModalOpen={setModalOpen} />
                                     )}
 
-                                    {/* Tabel hasil selectedResults */}
-                                    {msg.selectedResults && msg.selectedResults.length > 0 && (
-                                        <div className="mt-4 flex flex-col gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
-                                            <div className="flex justify-between items-end px-1 opacity-50 font-black text-[9px] uppercase tracking-tighter">
-                                                <span>Mata Kuliah Terpilih</span>
-                                                <span>Rank / Score</span>
-                                            </div>
-
-                                            {msg.selectedResults.map((mk, idx) => (
-                                                <div
-                                                    key={idx}
-                                                    className="flex items-center justify-between p-3 border-2 border-black dark:border-neo-yellow bg-white dark:bg-zinc-900 shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#facc15]"
-                                                >
-                                                    <div className="flex flex-col gap-1 min-w-0">
-                                                        <div className="text-[11px] font-black leading-tight truncate">{mk.matkul}</div>
-                                                        <div className="flex flex-wrap gap-2 text-[9px] opacity-70 items-center">
-                                                            {mk.kode && (
-                                                                <span className="px-1 py-px border border-black dark:border-current font-bold">
-                                                                    {mk.kode}
-                                                                </span>
-                                                            )}
-                                                            {mk.sks != null && <span>{mk.sks} SKS</span>}
-                                                            {mk.semester != null && <span>Smt {mk.semester}</span>}
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="flex items-center gap-4 ml-4 shrink-0">
-                                                        <div className="flex flex-col items-end text-right">
-                                                            <span className="text-[8px] font-black uppercase opacity-50">Rank</span>
-                                                            <span className="text-md font-black italic">#{mk.rank || "-"}</span>
-                                                        </div>
-                                                        <div className="flex flex-col items-end min-w-10 py-1 px-2 bg-neo-yellow text-black border-l-2 border-black shadow-[-2px_0_0_0_#000]">
-                                                            <span className="text-[7px] font-black uppercase">Score</span>
-                                                            <span className="text-[11px] font-black">
-                                                                {mk.score ? (mk.score * 100).toFixed(2) + "%" : "N/A"}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))}
-
-                                            <div className="mt-2 flex justify-center">
-                                                <button
-                                                    onClick={() => (window.location.href = "/about")}
-                                                    className="group flex items-center gap-2 text-[9px] font-black uppercase tracking-widest hover:text-neo-yellow transition-colors"
-                                                >
-                                                    <span className="border-b-2 border-black dark:border-neo-yellow pb-0.5">
-                                                        Lihat detail score di halaman about
-                                                    </span>
-                                                    <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-1" />
-                                                </button>
-                                            </div>
-                                        </div>
+                                    {/* Tabel hasil submit di modal select matkul) */}
+                                    {msg.selectedMatkulIds && (
+                                        <RekomendasiResult selectedMatkulIds={msg.selectedMatkulIds} />
                                     )}
                                 </div>
                             </div>
@@ -267,6 +182,7 @@ export default function ChatbotPage() {
                                 </div>
                             </div>
                         )}
+                        {/* goto bottom, apa memang perlu buat elemen ini? */}
                         <div ref={messagesEndRef} />
                     </div>
 
@@ -317,6 +233,28 @@ export default function ChatbotPage() {
                     </div>
                 </div>
             </main>
+
+            {/* Modal */}
+            {startTour && (
+                <TourGuide
+                    start={startTour}
+                    setStartTour={setStartTour}
+                    onOpenDrawer={() => setMenuOpen(true)}
+                    onTourEnd={() => setStartTour(false)}
+                    onCloseDrawer={() => setMenuOpen(false)}
+                />
+            )}
+
+            <AchievementToast tag={toastTag} onDismiss={dismissToast} />
+
+            {modalOpen && (
+                <MatkulModal
+                    selectedMKIds={selectedMKIds}
+                    setSelectedMKIds={setSelectedMKIds}
+                    onConfirm={handleConfirmMK}
+                    onClose={() => setModalOpen(false)}
+                />
+            )}
         </div>
     );
 }

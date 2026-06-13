@@ -249,14 +249,21 @@ export const createApp = (getPrisma: () => DbClient) => {
       "/recom-target",
       async ({ body, set }) => {
         try {
-          const { user_key, matkuls } = body;
+          // PERBAIKAN 1: Ambil 'matkul_ids' sesuai dengan nama di skema validasi
+          const { user_key, matkul_ids } = body;
 
-          // Mengubah .create menjadi .upsert karena user_key bersifat unik
-          const result = await getPrisma().recomTarget.create({
-            data: {
+          // PERBAIKAN 3: Gunakan .upsert yang sesungguhnya agar data otomatis ter-update jika user_key sudah ada
+          const result = await getPrisma().recomTarget.upsert({
+            where: {
+              user_key: user_key, // Kolom ini wajib memiliki indeks '@unique' di schema.prisma Anda
+            },
+            update: {
+              matkul_ids, // Update field jika user_key sudah terdaftar
+            },
+            create: {
               user_key,
-              matkuls,
-            }
+              matkul_ids, // Create field jika user_key belum ada
+            },
           });
 
           return {
@@ -275,11 +282,9 @@ export const createApp = (getPrisma: () => DbClient) => {
       {
         body: t.Object({
           user_key: t.Numeric(),
-          matkuls: t.Array(
-            t.Union([t.String(), t.Integer()]),
-            { error: "matkuls harus berupa array teks atau angka bulat" }
-          )
-        }),
+          // PERBAIKAN 2: Gunakan t.Array agar menerima format number[] dari frontend
+          matkul_ids: t.Array(t.Integer(), { error: "matkul_ids harus berupa number[]" })
+        })
       }
     )
     .post(
@@ -414,14 +419,11 @@ export const createApp = (getPrisma: () => DbClient) => {
           },
         });
 
-        // 5. ambil RecomTarget terakhir
+        // 5. ambil RecomTarget
         responseData['user_recomTarget_one'] = await getPrisma().recomTarget.findFirst({
           where: {
             user_key: user_data.user_key, // Kolom relasi user_key di tabel database
-          },
-          orderBy: {
-            createdAt: 'desc',
-          },
+          }
         });
       }
 

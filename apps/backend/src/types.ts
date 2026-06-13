@@ -1,8 +1,12 @@
 export interface DbClient {
   recomTarget: { // camelCase
     findMany: () => Promise<any[]>;
-    create: (args: { data: any }) => Promise<any>;
-    findFirst: (args: { where: any, orderBy: any }) => Promise<any>;
+    upsert: (args: {
+      where: { user_key: number };
+      update: { matkul_ids: number[] };
+      create: { user_key: number, matkul_ids: number[] };
+    }) => Promise<any>;
+    findFirst: (args: { where: { user_key: number } }) => Promise<any>;
     groupBy: (args: { by: any }) => Promise<any>;
   };
   score: { // camelCase

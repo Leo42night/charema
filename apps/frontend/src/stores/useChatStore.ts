@@ -14,7 +14,7 @@ interface FeedbackData {
 
 interface ChatStore {
   // ── Chat ────────────────────────────────────────────────────────────────────
-  messages: Message[];
+  messages: Message[]; // riwayat pesan
   // Menggunakan Record<id_pesan, isi_saran> agar tiap pesan punya catatan feedback unik
   feedback: Record<number, FeedbackData>;
   setFeedback: (
