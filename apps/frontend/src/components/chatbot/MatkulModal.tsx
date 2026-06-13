@@ -4,9 +4,10 @@ import React, { useState, useRef, useEffect, useMemo } from "react";
 import type { CategoryData, ItemMatkul, MataKuliah } from "@/types";
 import { useAuthStore } from "@/stores/useAuthStore";
 import item_matkul from "@/data/item_matkul.json";
-import { recommendationsToMatkul } from "@/lib/recommendationsToMatkul";
+import { useRecomToMatkul } from "@/hooks/useRecomToMatkul";
 import category from "@/data/category.json";
 import { toast } from "sonner";
+import { getProdi } from "@/lib/getProdi";
 
 function filterMatkul(availableMatkul: Record<string, MataKuliah>, keyword: string): MataKuliah[] {
     const kw = keyword.toLowerCase().trim();
@@ -34,11 +35,11 @@ export default function MatkulModal({
     const { category_map } = category as CategoryData; // map untuk name
 
     const itemMatkul = item_matkul as ItemMatkul;
-    const recoms = recommendationsToMatkul();
-    const availableMatkuls = recoms.matkuls;
+    const recoms = useRecomToMatkul();
+    const availableMatkuls = recoms!.matkuls;
 
     const user = useAuthStore((s) => s.user);
-    const prodi = user!.email.match(/^([a-zA-Z0-9]+)@/)![1].toUpperCase().slice(0, 3);
+    const prodi = getProdi(user!.user_key!, user!.email);
 
     const selectedMK = selectedMKIds.map((id) => {
         const found = id in itemMatkul['same']
@@ -50,6 +51,7 @@ export default function MatkulModal({
         }
     });
 
+    const totalSKS = selectedMK.reduce((a, m) => a + (m.sks || 0), 0);
     const [keyword, setKeyword] = useState("");
     const inputRef = useRef<HTMLInputElement>(null);
     const [activeTooltipId, setActiveTooltipId] = useState<number | null>(null);
@@ -58,7 +60,6 @@ export default function MatkulModal({
     const calculatedLimit = Math.floor(totalMatkul * 0.66);
     // Memastikan batas maksimal tidak melebihi 10 (max 10)
     const limitSelect = Math.min(calculatedLimit, 10);
-    const totalSKS = selectedMK.reduce((a, m) => a + (m.sks || 0), 0);
     const [loading, setLoading] = useState(false);
     const [isEst, setIsEst] = useState(false); // estimasi
 
@@ -110,9 +111,17 @@ export default function MatkulModal({
     };
 
     const onToggle = (mk: MataKuliah) => {
-        if (!selectedMKIds.includes(mk.item) && (totalSKS + (mk?.sks ?? 0) > 24)) {
-            toast.warning("Maksimal 24 SKS");
-            return;
+        // tidak bisa select jika
+        if (!selectedMKIds.includes(mk.item)) {
+            if (totalSKS + (mk?.sks ?? 0) > 24) {
+                // maksimal 24 sks
+                toast.warning("Maksimal 24 SKS");
+                return;
+            } else if (selectedMK.length === limitSelect) {
+                // sudah limit max selection
+                toast.warning(`Limit Maksimal ${limitSelect}`);
+                return;
+            }
         };
         setSelectedMKIds((prev) =>
             // Gunakan .includes karena isi array 'prev' sekarang langsung angka ID

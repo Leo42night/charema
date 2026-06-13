@@ -1,7 +1,8 @@
+// components/chatbot/RekomendasiMsg.tsx
 import { useMemo, useState } from "react";
 import type { CategoryData } from "@/types";
 import category from "@/data/category.json";
-import { recommendationsToMatkul } from "@/lib/recommendationsToMatkul";
+import { useRecomToMatkul } from "@/hooks/useRecomToMatkul";
 
 interface RekomendasiResultProps {
     selectedMatkulIds: number[];
@@ -10,7 +11,7 @@ interface RekomendasiResultProps {
 // tampilan di message berisi hasil rekomendasi matkul dan kategori
 const RekomendasiMsg = ({ selectedMatkulIds }: RekomendasiResultProps) => {
     const { category_map } = category as CategoryData; // map untuk name
-    const recoms = recommendationsToMatkul();
+    const recoms = useRecomToMatkul();
     const availableMatkuls = recoms!.matkuls;
     const categories = recoms!.categories;
     const category_matkuls = recoms!.category_matkuls;
@@ -41,6 +42,7 @@ const RekomendasiMsg = ({ selectedMatkulIds }: RekomendasiResultProps) => {
 
     return (
         <div className="mt-4 flex flex-col gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+
             {/* === SCOREBOARD KATEGORI === */}
             <div className="flex flex-col gap-1">
                 <div className="px-1 opacity-50 font-black text-[9px] uppercase tracking-tighter mb-1">
@@ -174,6 +176,7 @@ const RekomendasiMsg = ({ selectedMatkulIds }: RekomendasiResultProps) => {
                                                 {mk.kode}
                                             </span>
                                         )}
+                                        {/* handle boolean: 0 juga nilai ( 0 = Pilihan, 1 = Wajib) */}
                                         {mk.wajib != null && (
                                             <span className={`px-1 py-px font-bold border ${mk.wajib ? 'border-black dark:border-neo-yellow bg-neo-yellow text-black' : 'border-current opacity-60'}`}>
                                                 {mk.wajib ? 'Wajib' : 'Pilihan'}
@@ -191,7 +194,6 @@ const RekomendasiMsg = ({ selectedMatkulIds }: RekomendasiResultProps) => {
                                         )}
                                         {mk.sks && <span>{mk.sks} SKS</span>}
                                         <span>{category_map[mk.category]}</span>
-                                        {/* <span>Data {2000 + mk.tahun} {mk.sm == 1 ? "Feb" : "Aug"}</span> */}
                                         <span className="italic text-neutral-500 dark:text-neutral-400 font-normal">
                                             Update {2000 + mk.tahun} {mk.sm === 1 ? "Feb" : "Aug"}
                                         </span>

@@ -23,7 +23,7 @@ bun seed:turso
 ## lihat turso web apakah data terisi
 
 # -- Production (AWS RDS Postgres)
-bun prisma generate --schema prisma/schema-postgres.prisma
+bun prisma generate --schema prisma/schema-pg.prisma
 ## migrasi skema database ke RDS Postgres
 bun --env-file=.env.production prisma db push --force-reset
 ## Isi backend/package.json script "bun --env-file=.env.production prisma/seed.ts", pastikan DATABASE_URL postgres di `.env.production` ada)
@@ -217,3 +217,6 @@ Setelah masuk ke *prompt* `sqlite>`, ketik dua perintah ini agar tampilan data r
 *   **Lihat seluruh isi data:** `SELECT * FROM Feedback;`
 *   **Lihat 5 data terbaru:** `SELECT * FROM RecomTarget ORDER BY createdAt DESC LIMIT 5;`
 *   **Hapus semua isi tabel:** `DELETE FROM Score;`
+
+## Info Package
+- `@types/node` agar elemen `process` terbaca

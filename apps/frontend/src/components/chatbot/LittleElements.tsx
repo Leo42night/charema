@@ -54,7 +54,7 @@ export const MessageBubble = ({ msg }: { msg: Message }) => {
             feedback: feedbackInput
         };
 
-        console.log(payload);
+        // console.log(payload);
 
         //  ambil pesan prompt user sebelum msg ini
         try {

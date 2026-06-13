@@ -1,13 +1,16 @@
+// Left
 import { useEffect, useMemo, useState } from "react";
 import { useAuthStore } from "@/stores/useAuthStore"
-import githubIcon from "@/assets/github.svg"
 import category from "@/data/category.json";
+import { useRecomToMatkul } from "@/hooks/useRecomToMatkul";
+import type { CategoryData } from "@/types";
+
+// Middle & Right
+import githubIcon from "@/assets/github.svg"
 import rekapJson from "@/data/rekap.json";
 import { Database, Play, Star, Trophy, Users } from "lucide-react";
 import axios from "axios";
 import { BACKEND_URL, TUTORIAL_YT } from "@/constants";
-import { recommendationsToMatkul } from "@/lib/recommendationsToMatkul";
-import type { CategoryData } from "@/types";
 
 interface RekapData {
   total_data_latih: number;
@@ -26,26 +29,24 @@ const AboutPage = () => {
   const { category_map } = category as CategoryData; // map untuk name
   const rekap = rekapJson as RekapData; // map untuk name
 
+  // --- Category & Matkuls Rekomendation List
   const selectedMatkulItems = useAuthStore((state) => state.selectedMatkulItems);
-  const recoms = recommendationsToMatkul();
+  const recoms = useRecomToMatkul();
   const availableMatkuls = recoms?.matkuls;
   const categories = recoms?.categories;
   const category_matkuls = recoms?.category_matkuls;
   const topCategoryKey = recoms?.topCategoryKey;
   const totalMatkul = availableMatkuls ? Object.keys(availableMatkuls).length : 0;
 
-  const [activeTooltipId, setActiveTooltipId] = useState<number | null>(null);
 
-  // hitung selected Category (ubah tiap ada seleksi baru)
-  const countCatSelected = availableMatkuls ? useMemo(() => {
+  // mapping count tiap category (ubah tiap ada seleksi baru)
+  const countCatSelected = useMemo(() => {
+    if (!availableMatkuls || !selectedMatkulItems) return null;
+
     const countMap: Record<string, number> = {};
 
-    // Lakukan pencarian instan O(1) langsung menggunakan key objek Record
     for (const mkid of selectedMatkulItems) {
-      // Ambil data langsung menggunakan ID matkul (mkid) sebagai key
       const matkul = availableMatkuls[mkid];
-
-      // Validasi jika data tidak ditemukan atau tidak memiliki properti category
       if (!matkul || matkul.category == null) continue;
 
       const catKey = String(matkul.category);
@@ -53,7 +54,10 @@ const AboutPage = () => {
     }
 
     return countMap;
-  }, [selectedMatkulItems, availableMatkuls]) : null;
+  }, [selectedMatkulItems, availableMatkuls]);
+
+  const [activeTooltipId, setActiveTooltipId] = useState<number | null>(null);
+  // ----
 
   // State untuk menyimpan data statistik backend
   const [stats, setStats] = useState<{
@@ -67,6 +71,7 @@ const AboutPage = () => {
     n_rec_users: 0, n_feedback: 0, demographics: {}, top_10_users: [],
     avg_score_chat: 0, avg_score_cf: 0, total_users: 0
   });
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -245,8 +250,11 @@ const AboutPage = () => {
                           {mk.kode}
                         </span>
                       )}
-                      {mk.sks != null && <span>{mk.sks} SKS</span>}
-                      {mk.semester != null && <span>Smt {mk.semester}</span>}
+                      {mk.sks && <span>{mk.sks} SKS</span>}
+                      {mk.semester && <span>Smt {mk.semester}</span>}
+                      <span className="italic text-neutral-500 dark:text-neutral-400 font-normal">
+                        Update {2000 + mk.tahun} {mk.sm === 1 ? "Feb" : "Aug"}
+                      </span>
                     </div>
 
                     {/* Row 2: dosen (with tooltip popup) */}

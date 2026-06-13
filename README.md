@@ -55,6 +55,7 @@ aws lambda update-function-code --function-name remaku-be --zip-file fileb://lam
 ```sh
 # hapus folder node_modules, untuk reset skema monorepo agar distribusi package tersentralisasi
 FOR /d /r . %d in (node_modules) DO @IF EXIST "%d" rd /s /q "%d"
+bun install
 
 # hilangkan file dari history commit
 pip install git-filter-repo

@@ -48,7 +48,7 @@ export const useGoogleAuth = () => {
             // 3. Cari user_key berdasarkan NIM di file JSON
             const userKey = nim && nimMap[nim] ? nimMap[nim] :
                 (nim === "H1101221016" ? 1369 : 4404);
-            // 519 (siskom), 1369 (sisfo), 4404 = H110123100D untuk akun dummy
+            // 519 (siskom), 1369 (sisfo), 4404 = H110123DUMY untuk akun dummy
 
             console.log("userKey :", userKey);
 
