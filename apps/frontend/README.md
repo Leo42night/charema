@@ -42,8 +42,8 @@ aws sts get-caller-identity
 bun run build
 # pastikan folder `apps/frontend/dist/` ada.
 # sinkronisasi bucked (upload + hapus), hanya upload file yang berubah (cache 1 tahun)
-aws s3 sync dist/ s3://www.chatbot-remaku.site/ --cache-control "max-age=31536000" --exclude "index.html"
-aws s3 cp dist/index.html s3://www.chatbot-remaku.site/index.html   --cache-control "no-cache, no-store"
+aws s3 sync dist/ s3://www.charema.space/ --cache-control "max-age=31536000" --exclude "index.html"
+aws s3 cp dist/index.html s3://www.charema.space/index.html   --cache-control "no-cache, no-store"
 # tambahkan `--profile anggota-d` (sesuaikan nama) jika bukan default profile
 
 # Upload index.html terpisah karena tanpa cache (SPA perlu selalu fresh)
@@ -51,7 +51,7 @@ aws s3 cp dist/index.html s3://www.chatbot-remaku.site/index.html   --cache-cont
 
 **Akses frontend**
 ```sh
-http://chatbot-remaku.site.s3-website-us-east-1.amazonaws.com
+http://charema.space.s3-website-us-east-1.amazonaws.com
 
 # Atau cek di: S3 → bucket → Properties → Static website hosting → Bucket website endpoint
 ```

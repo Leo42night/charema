@@ -102,8 +102,9 @@ export const useGoogleAuth = () => {
             }
 
             if (backendRes.data.user_recomTarget_one) { // jika sudah pernah submit matkul
-                console.log(backendRes.data.user_recomTarget_one);
-                setSelectedMatkulItems(backendRes.data.user_recomTarget_one.matkuls)
+                // console.log("backendRes.data.user_recomTarget_one", backendRes.data.user_recomTarget_one);
+                toast.success("Selected Matkul data dimuat.", { position: "top-center" });
+                setSelectedMatkulItems(backendRes.data.user_recomTarget_one.matkul_ids)
             }
 
             // console.log("Login berhasil!");

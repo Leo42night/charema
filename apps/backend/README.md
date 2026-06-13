@@ -54,7 +54,7 @@ Default output format [None]: json
 ```
 - Upload folder (dengan cache control)
 ```sh
-aws s3 sync ./tfjs_saved_model s3://chatbot-remaku/tfjs-model --cache-control "public, max-age=31536000, immutable"
+aws s3 sync ./tfjs_saved_model s3://charema/tfjs-model --cache-control "public, max-age=31536000, immutable"
 ```
 
 ## AWS Lambda Deployment
