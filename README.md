@@ -1,8 +1,6 @@
-`[--Image Logo & BG 3D Perspective UI Design github readme example--]`
+<img align="center" src="https://raw.githubusercontent.com/Leo42night/Leo42night/main/img/cover-charema.png" />
 
-# Web Chatbot Rekomendasi Matkul
-
-Proyek ini dibuat untuk Skripsi saya sebagai Mahasiswa S1 Sistem Infromasi Universitas Tanjungpura akt 2022. Skripsi dengan judul "Implementasi Chatbot Rekomendasi Mata Kuliah menggunakan Neural Colaborative Filtering".
+Proyek ini dibuat untuk Skripsi saya sebagai Mahasiswa S1 Sistem Infromasi Universitas Tanjungpura akt 2022. Skripsi dengan judul "Implementasi *Chatbot* Rekomendasi Mata Kuliah menggunakan *Neural Colaborative Filtering*".
 
 ## Features
 Main:
