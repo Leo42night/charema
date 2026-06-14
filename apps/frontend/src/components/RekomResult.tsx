@@ -83,28 +83,33 @@ export const RekomResult = ({
                             </span>
 
                             <span className={`relative z-10 flex-1 text-[10px] font-black truncate ${isTop ? 'text-black' : ''}`}>
-                                Kategori {category_map[cat.category]}
+                                <span className="hidden sm:inline">Kategori </span>{category_map[cat.category]}
                             </span>
 
-                            <span className={`relative z-10 text-[8px] font-bold opacity-60 shrink-0 ${isTop ? 'text-black' : ''}`}>
+                            <span className={`relative z-10 text-[8px] font-bold opacity-60 shrink-0 hidden sm:inline ${isTop ? 'text-black' : ''}`}>
                                 {cat.count} matkul
                             </span>
 
                             {/* null atau 0 akan ditolak */}
                             {countCatSelected[cat.category] && (
-                                <span className={`relative z-10 text-[8px] font-bold opacity-60 shrink-0 ${isTop ? 'text-black' : ''}`}>
+                                <span className={`relative z-10 text-[8px] font-bold opacity-60 shrink-0 hidden sm:inline ${isTop ? 'text-black' : ''}`}>
                                     ({countCatSelected[cat.category]} dipilih)
                                 </span>
                             )}
 
                             <div className={`relative z-10 flex flex-col items-end shrink-0 min-w-10.5 px-1.5 py-0.5
-                                ${isTop
+                                    ${isTop
                                     ? 'bg-black text-neo-yellow'
                                     : 'bg-neo-yellow text-black border-l border-black dark:border-neo-yellow'
                                 }`}>
                                 <span className="text-[6px] font-black uppercase leading-none">Score</span>
                                 <span className="text-[10px] font-black leading-tight">
                                     {cat.totalScore.toFixed(3)}
+                                </span>
+                                {/* Mobile only: tampil di bawah score */}
+                                <span className="sm:hidden text-[6px] font-bold opacity-60 leading-none mt-0.5">
+                                    {cat.count} mtkl
+                                    {countCatSelected[cat.category] ? ` · ${countCatSelected[cat.category]}✓` : ''}
                                 </span>
                             </div>
                         </div>
@@ -119,26 +124,58 @@ export const RekomResult = ({
                         Kurikulum — {category_map[categories[0].category] ?? `Kategori ${topCategoryKey}`}
                     </div>
                     <div className="flex flex-col gap-1">
-                        {category_matkuls.map((cm, idx) => (
-                            <div
-                                key={cm.kode ?? idx}
-                                className="flex items-center gap-2 px-2 py-1.5 border border-black dark:border-zinc-700 bg-white dark:bg-zinc-900"
-                            >
-                                <span className="text-[8px] font-black opacity-40 shrink-0 w-6 text-right">
-                                    Smt {cm.semester}
-                                </span>
-                                <span className="text-[8px] font-black border border-black dark:border-zinc-600 px-1 shrink-0 opacity-70">
-                                    {cm.kode}
-                                </span>
-                                <span className="text-[10px] font-semibold flex-1 truncate">{cm.matkul}</span>
-                                <span className="text-[8px] opacity-50 shrink-0">{cm.sks} SKS</span>
-                                {cm.wajib === 1 && (
-                                    <span className="text-[7px] font-black px-1 bg-neo-yellow text-black border border-black shrink-0">
-                                        Wajib
-                                    </span>
-                                )}
-                            </div>
-                        ))}
+                        {category_matkuls.map((cm, idx) => {
+                            const [showPopover, setShowPopover] = useState(false);
+
+                            return (
+                                <div
+                                    key={cm.kode ?? idx}
+                                    className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 px-2 py-1.5 border border-black dark:border-zinc-700 bg-white dark:bg-zinc-900"
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[8px] font-black opacity-40 shrink-0 w-6 text-right">
+                                            Smt {cm.semester}
+                                        </span>
+                                        <span className="text-[8px] font-black border border-black dark:border-zinc-600 px-1 shrink-0 opacity-70">
+                                            {cm.kode}
+                                        </span>
+                                        <span className="text-[8px] opacity-50 shrink-0 sm:hidden">{cm.sks} SKS</span>
+                                        {cm.wajib === 1 && (
+                                            <span className="text-[7px] font-black px-1 bg-neo-yellow text-black border border-black shrink-0 sm:hidden">
+                                                Wajib
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {/* Nama matkul dengan popover */}
+                                    <div
+                                        className="relative flex-1 min-w-0"
+                                        onMouseEnter={() => setShowPopover(true)}
+                                        onMouseLeave={() => setShowPopover(false)}
+                                        onClick={() => setShowPopover(prev => !prev)}
+                                    >
+                                        <span className="text-[10px] font-semibold block truncate cursor-pointer">
+                                            {cm.matkul}
+                                        </span>
+
+                                        {showPopover && (
+                                            <div className="absolute bottom-full left-0 mb-1.5 z-50 px-2 py-1.5 border-2 border-black dark:border-neo-yellow bg-white dark:bg-zinc-900 shadow-[3px_3px_0_0_#000] dark:shadow-[3px_3px_0_0_#facc15] max-w-60">
+                                                <span className="text-[10px] font-semibold leading-tight wrap-break-word">
+                                                    {cm.matkul}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <span className="text-[8px] opacity-50 shrink-0 hidden sm:inline">{cm.sks} SKS</span>
+                                    {cm.wajib === 1 && (
+                                        <span className="text-[7px] font-black px-1 bg-neo-yellow text-black border border-black shrink-0 hidden sm:inline">
+                                            Wajib
+                                        </span>
+                                    )}
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
             )}

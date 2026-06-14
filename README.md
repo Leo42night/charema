@@ -50,8 +50,18 @@ cd apps/backend
 # -- DB Production (AWS RDS Postgres) [-- !DB AKAN DI RESET, BACKUP DULU DATA JIKA ADA! --]
 bun --env-file=.env.production prisma db push --force-reset
 bun prisma generate --schema prisma/schema-pg.prisma
-# -- Code (AWS Lambda)
+
+# build
 bun build src/lambda.ts --outdir dist-lambda --target node --format cjs --external prisma
+
+# copy Generated Prisma Client (postgres), dependency, & certificate
+## Versi Windows CMD
+xcopy /s /i /e src\generated\prisma-pg dist-lambda\generated\prisma-pg
+### -- masukkan SSH & node_modules/.prisma ke folder dist-lambda/ -- 
+if not exist "dist-lambda\cert" mkdir "dist-lambda\cert" && xcopy /y "cert\global-bundle.pem" "dist-lambda\cert\"
+```
+
+# -- Code (AWS Lambda)
 cd dist-lambda && powershell -NoProfile -Command "Compress-Archive -Path * -DestinationPath ../lambda-backend.zip -Force" && cd ..
 aws lambda update-function-code --function-name remaku-be --zip-file fileb://lambda-backend.zip
 ```
