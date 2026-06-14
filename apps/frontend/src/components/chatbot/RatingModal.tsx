@@ -5,6 +5,7 @@ import { useAuthStore } from "@/stores/useAuthStore";
 import { toast } from "sonner"; // atau react-toastify / toast bawaan Anda
 import { useChatStore } from "@/stores/useChatStore";
 import { BACKEND_URL } from "@/constants";
+import { elysiaErr } from "@/lib/elysiaErr";
 
 interface RatingModalProps {
   isOpen: boolean;
@@ -69,10 +70,11 @@ export const RatingModal: React.FC<RatingModalProps> = ({ isOpen, onClose, onSuc
       );
       setRating({ score_cf: scoreCF, score_chat: scoreChat });
 
-      toast.success("Terima kasih! Rating berhasil disimpan.");
+      toast.success("Terima kasih! Progress disimpan.");
       if (onSuccess) onSuccess(response.data.data);
       onClose();
     } catch (error: any) {
+      elysiaErr(error);
       console.error("Gagal mengirim rating:", error);
       const errorMsg = error.response?.data?.error || "Terjadi kesalahan server";
       toast.error(`Gagal: ${errorMsg}`);
@@ -120,8 +122,8 @@ export const RatingModal: React.FC<RatingModalProps> = ({ isOpen, onClose, onSuc
               >
                 <Star
                   className={`w-7 h-7 stroke-[2.5] ${star <= (hoverCF || scoreCF)
-                      ? "fill-neo-yellow text-black dark:text-neo-yellow"
-                      : "text-gray-300 dark:text-zinc-700"
+                    ? "fill-neo-yellow text-black dark:text-neo-yellow"
+                    : "text-gray-300 dark:text-zinc-700"
                     }`}
                 />
               </button>
@@ -146,8 +148,8 @@ export const RatingModal: React.FC<RatingModalProps> = ({ isOpen, onClose, onSuc
               >
                 <Star
                   className={`w-7 h-7 stroke-[2.5] ${star <= (hoverChat || scoreChat)
-                      ? "fill-neo-yellow text-black dark:text-neo-yellow"
-                      : "text-gray-300 dark:text-zinc-700"
+                    ? "fill-neo-yellow text-black dark:text-neo-yellow"
+                    : "text-gray-300 dark:text-zinc-700"
                     }`}
                 />
               </button>
@@ -167,7 +169,7 @@ export const RatingModal: React.FC<RatingModalProps> = ({ isOpen, onClose, onSuc
         >
           {isSubmitting ? "MENGIRIM..." : "KIRIM_PROGRESS"}
         </button>
-        
+
         {/* Keterangan Tambahan di Bawah Progress Bar */}
         <p className="mt-3 text-[9px] font-bold opacity-60 normal-case leading-tight">
           * progres ini juga akan menyimpan riwayat data tags yang Anda berhasil akses.

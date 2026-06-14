@@ -90,9 +90,12 @@ export const RekomResult = ({
                                 {cat.count} matkul
                             </span>
 
-                            <span className={`relative z-10 text-[8px] font-bold opacity-60 shrink-0 ${isTop ? 'text-black' : ''}`}>
-                                ({countCatSelected[cat.category] ?? 0} dipilih)
-                            </span>
+                            {/* null atau 0 akan ditolak */}
+                            {countCatSelected[cat.category] && (
+                                <span className={`relative z-10 text-[8px] font-bold opacity-60 shrink-0 ${isTop ? 'text-black' : ''}`}>
+                                    ({countCatSelected[cat.category]} dipilih)
+                                </span>
+                            )}
 
                             <div className={`relative z-10 flex flex-col items-end shrink-0 min-w-10.5 px-1.5 py-0.5
                                 ${isTop

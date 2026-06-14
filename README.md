@@ -46,6 +46,11 @@ aws s3 cp dist/index.html s3://www.charema.space/index.html   --cache-control "n
 ### Backend Build
 ```sh
 cd apps/backend
+
+# -- DB Production (AWS RDS Postgres) [-- !DB AKAN DI RESET, BACKUP DULU DATA JIKA ADA! --]
+bun --env-file=.env.production prisma db push --force-reset
+bun prisma generate --schema prisma/schema-pg.prisma
+# -- Code (AWS Lambda)
 bun build src/lambda.ts --outdir dist-lambda --target node --format cjs --external prisma
 cd dist-lambda && powershell -NoProfile -Command "Compress-Archive -Path * -DestinationPath ../lambda-backend.zip -Force" && cd ..
 aws lambda update-function-code --function-name remaku-be --zip-file fileb://lambda-backend.zip

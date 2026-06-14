@@ -72,13 +72,13 @@ export const dataRoutes = (getPrisma: () => DbClient) =>
                     await initializeDatabase();
                     const responseData: any = {}
                     // n user sukses doing recomendation from all user
-                    const uniqueUsers = await getPrisma().recomTarget.groupBy({
-                        by: ['user_key'],
+                    const uniqueUsers = await getPrisma().recomTarget.findMany({
+                        distinct: ['user_key'],
+                        select: { user_key: true },
                     });
 
                     // Panjang array uniqueUsers merepresentasikan jumlah user_key yang unik
                     responseData['n_rec_users'] = uniqueUsers.length;
-
 
                     // 3. Inisialisasi struktur object untuk 6 group
                     const groups: Record<string, number> = {

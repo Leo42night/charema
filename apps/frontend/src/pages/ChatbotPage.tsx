@@ -13,7 +13,7 @@ import MatkulModal from "@/components/chatbot/MatkulModal";
 import { ButtonMatkulModal, MessageBubble } from "@/components/chatbot/LittleElements";
 import Sidebar from "@/components/chatbot/Sidebar";
 import { useAuthStore } from "@/stores/useAuthStore";
-import { BACKEND_URL } from "@/constants";
+import { BACKEND_URL, SUGGESTED_PROMPTS } from "@/constants";
 import { useUIStore } from "@/stores/useUIStore";
 import TourGuide from "@/components/TourGuide";
 import RekomendasiResult from "@/components/chatbot/RekomendasiMsg";
@@ -185,6 +185,26 @@ export default function ChatbotPage() {
                         {/* goto bottom, apa memang perlu buat elemen ini? */}
                         <div ref={messagesEndRef} />
                     </div>
+
+                    {/* Suggested Chat */}
+                    {messages.length <= 1 && !isLoading && (
+                        <div className="shrink-0 px-4 pb-2 flex flex-wrap gap-2 justify-end">
+                            {SUGGESTED_PROMPTS.map((prompt) => (
+                                <button
+                                    key={prompt}
+                                    onClick={() => {
+                                        sendMessage(prompt);
+                                    }}
+                                    className="px-2.5 py-1.5 text-[10px] font-black uppercase tracking-wide border-2 border-black dark:border-neo-yellow
+                    bg-white dark:bg-zinc-900 text-black dark:text-neo-yellow
+                    shadow-[2px_2px_0_0_#000] dark:shadow-[2px_2px_0_0_#facc15]
+                    hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all"
+                                >
+                                    {prompt}
+                                </button>
+                            ))}
+                        </div>
+                    )}
 
                     {/* Input Section */}
                     <div className="mb-4 md:mb-0 shrink-0 bg-neo-bg dark:bg-zinc-950 pb-[env(safe-area-inset-bottom,0px)]">

@@ -14,30 +14,32 @@ datasource db {
 
 // simpan data target input mahasiswa, matkul yang diambil semester ini
 model RecomTarget { 
-  id          Int   @id @default(autoincrement())
   // user key key dari proses index user-items CF, value key matkuls disiman di JSON file
-  user_key    Int   @unique 
+  id          Int   @id @default(autoincrement()) // bisa ada beberapa recom
+  user_key    Int   
   // JSON [1,2,3], value key matkuls disiman di JSON file
   // !!! skema item_matkul.json perlu diarchive jika ada update
-  matkul_ids  Json 
+  matkul_ids  Json
+  created_at  DateTime   @default(now()) // save tiap ada data baru
+  updated_at  DateTime   @default(now()) // max 3 kali, setelah itu mode upsert
 }
 
+// POST progress untuk simpan Score & Achievement 
 // Simapn hasil score terhadap "apakah hasil rekomendasi membantu? 1-5", apakah score membantu
 model Score {
   user_key    Int   @id // user_key sekarang menjadi identitas unik utama
   score_cf    Int
   score_chat  Int
-  createdAt  DateTime   @default(now())
+  created_at  DateTime   @default(now()) // jadi catatan update untuk Achievement
 }
 
-// simpan achivement
 model Achievement {
   user_key   Int   @id // user_key sekarang menjadi identitas unik utama
   tags       Json // ["greeting", "rekomendasi", dsb.]
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @default(now())
+  created_at  DateTime   @default(now()) // interaksi pertama (walaupun tidak langsung simpan)
 }
 
+// Feedback di limit 4 saja, jika ada feedback baru, lakukan upsert
 model Feedback {
   id          Int   @id @default(autoincrement())
   user_key    Int? // jika tidak ada maka email wajib
@@ -46,5 +48,5 @@ model Feedback {
   res_tag     String // "greeting"
   res_message String
   feedback    String
-  createdAt  DateTime   @default(now())
+  created_at  DateTime   @default(now())
 }

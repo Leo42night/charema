@@ -89,6 +89,9 @@ export const createApp = (getPrisma: () => DbClient) => {
         responseData['user_recomTarget_one'] = await getPrisma().recomTarget.findFirst({
           where: {
             user_key: user_data.user_key, // Kolom relasi user_key di tabel database
+          },
+          orderBy: {
+            created_at: 'desc', // updated_at akan di update
           }
         });
       }
@@ -112,24 +115,46 @@ export const createApp = (getPrisma: () => DbClient) => {
           // PERBAIKAN 1: Ambil 'matkul_ids' sesuai dengan nama di skema validasi
           const { user_key, matkul_ids } = body;
 
-          // PERBAIKAN 3: Gunakan .upsert yang sesungguhnya agar data otomatis ter-update jika user_key sudah ada
-          const result = await getPrisma().recomTarget.upsert({
-            where: {
-              user_key: user_key, // Kolom ini wajib memiliki indeks '@unique' di schema.prisma Anda
-            },
-            update: {
-              matkul_ids, // Update field jika user_key sudah terdaftar
-            },
-            create: {
-              user_key,
-              matkul_ids, // Create field jika user_key belum ada
-            },
+          // Cek jumlah data untuk user_key ini
+          const count = await getPrisma().recomTarget.count({
+            where: { user_key },
           });
 
-          return {
-            data: result,
-            message: "Recommendation target processed successfully (created/updated)",
-          };
+          let result;
+
+          if (count >= 3) {
+            // Sudah 3 atau lebih → update yang terbaru
+            const latest = await getPrisma().recomTarget.findFirst({
+              where: { user_key },
+              orderBy: { created_at: 'desc' },
+            });
+
+            result = await getPrisma().recomTarget.update({
+              where: { id: latest!.id },
+              data: {
+                matkul_ids,
+                updated_at: new Date(),
+              },
+            });
+
+            return {
+              data: result,
+              message: "Recommendation updated",
+            };
+          } else {
+            // Belum 3 → buat baru
+            result = await getPrisma().recomTarget.create({
+              data: {
+                user_key,
+                matkul_ids,
+              },
+            });
+            return {
+              data: result,
+              message: "Recommendation created",
+            };
+          }
+
         } catch (error: any) {
           console.error("Prisma error:", error);
           set.status = 500;
@@ -163,6 +188,7 @@ export const createApp = (getPrisma: () => DbClient) => {
             update: {
               score_cf,
               score_chat,
+              created_at: new Date() // key update untuk achievement juga
             },
             // 3. Jika user_key BELUM ADA, buat baris data baru
             create: {
@@ -178,12 +204,10 @@ export const createApp = (getPrisma: () => DbClient) => {
             create: {
               user_key, // Jangan lupa masukkan field unique penanda relasi
               tags,
-              // updatedAt otomatis terisi jika menggunakan @updatedAt di skema
             },
             // Data yang akan diperbarui jika data SUDAH ada
             update: {
-              tags,
-              updatedAt: new Date()
+              tags // time update pakai created_at di score
             },
           });
 
@@ -217,21 +241,32 @@ export const createApp = (getPrisma: () => DbClient) => {
             return { error: "Gagal validasi", detail: "Email wajib diisi jika user_key tidak tersedia." };
           }
 
-          // 2. Simpan ke database menggunakan Prisma
-          await getPrisma().feedback.create({
-            data: { user_key, email, input, res_tag, res_message, feedback },
-          });
+          // 2. Buat where clause berdasarkan user_key atau email
+          const whereClause = user_key
+            ? { user_key }
+            : { email: email! };
 
-          let feedbackCount = 0;
-          if (user_key) {
-            feedbackCount = await getPrisma().feedback.count({
-              where: {
-                user_key: user_key,
-              },
+          // 3. Cek jumlah feedback
+          const count = await getPrisma().feedback.count({ where: whereClause });
+
+          if (count >= 4) {
+            // Update yang terbaru
+            const latest = await getPrisma().feedback.findFirst({
+              where: whereClause,
+              orderBy: { created_at: 'desc' },
+            });
+
+            await getPrisma().feedback.update({
+              where: { id: latest!.id },
+              data: { input, res_tag, res_message, feedback },
+            });
+          } else {
+            // Buat baru
+            await getPrisma().feedback.create({
+              data: { user_key, email, input, res_tag, res_message, feedback },
             });
           }
-
-          return { count: feedbackCount, message: "Feedback submitted successfully" };
+          return { count, message: "Feedback submitted" };
         } catch (error: any) {
           set.status = 500;
           return { error: "Failed to submit feedback", detail: error.message };
@@ -248,7 +283,6 @@ export const createApp = (getPrisma: () => DbClient) => {
         }),
       }
     )
-
 
   return app;
 };

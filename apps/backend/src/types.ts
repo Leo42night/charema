@@ -1,22 +1,19 @@
 export interface DbClient {
   recomTarget: { // camelCase
-    findMany: () => Promise<any[]>;
-    upsert: (args: {
-      where: { user_key: number };
-      update: { matkul_ids: number[] };
-      create: { user_key: number, matkul_ids: number[] };
-    }) => Promise<any>;
-    findFirst: (args: { where: { user_key: number } }) => Promise<any>;
-    groupBy: (args: { by: any }) => Promise<any>;
+    findMany: (args?: any) => Promise<any[]>;
+    upsert: (args?: any) => Promise<any>;
+    findFirst: (args?: any) => Promise<any>;
+    count: (args: { where: { user_key: number } }) => Promise<any>;
+    update: (args: { where: any, data: any }) => Promise<any>;
+    create: (args: { data: any }) => Promise<any>;
   };
   score: { // camelCase
     upsert: (args: {
       where: { user_key: number };
-      update: { score_cf: number; score_chat: number };
+      update: { score_cf: number; score_chat: number, created_at: Date };
       create: { user_key: number, score_cf: number; score_chat: number };
     }) => Promise<any>;
     findMany: () => Promise<any[]>;
-    count: () => Promise<number>;
     aggregate: (args: any) => Promise<any>;
   };
   achievement: { // camelCase
@@ -24,14 +21,16 @@ export interface DbClient {
     findMany: () => Promise<any[]>;
     upsert: (args: {
       where: { user_key: number }; // Key unik untuk pencarian data
-      update: { tags: any; updatedAt?: Date }; // Data yang diubah jika data ADA
-      create: { user_key: number, tags: any; updatedAt?: Date }
+      update: { tags: any }; // time Update pakai score update created_at 
+      create: { user_key: number, tags: any }
     }) => Promise<any>;
   };
   feedback: { // camelCase
     create: (args: { data: any }) => Promise<any>;
+    update: (args: { where: any, data: any }) => Promise<any>;
+    findFirst: (args: { where: any, orderBy: any }) => Promise<any>;
     findMany: () => Promise<any[]>;
-    count: (args?: { where: { user_key: number } }) => Promise<number>;
+    count: (args?: { where: any }) => Promise<number>;
   };
   // Menggunakan 'any' pada query untuk bypass validasi strict Prisma internal
   $queryRaw: <T = any>(query: any, ...values: any[]) => Promise<T>;

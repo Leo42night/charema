@@ -12,6 +12,8 @@ bun prisma generate --schema prisma/schema-pg.prisma
 bun prisma db seed
 ## koneksi `dev.db` ke HeidiSQL Sqlite, lihat isinya
 bun prisma db push # jika ada update *.prisma -> update db
+# jika ada update
+bun prisma db push --force-reset
 ```
 3. Database: Deployment ke production
 ```sh
@@ -215,7 +217,7 @@ Setelah masuk ke *prompt* `sqlite>`, ketik dua perintah ini agar tampilan data r
 
 ### 4. Contoh Query SQL Populer
 *   **Lihat seluruh isi data:** `SELECT * FROM Feedback;`
-*   **Lihat 5 data terbaru:** `SELECT * FROM RecomTarget ORDER BY createdAt DESC LIMIT 5;`
+*   **Lihat 5 data terbaru:** `SELECT * FROM RecomTarget ORDER BY created_at DESC LIMIT 5;`
 *   **Hapus semua isi tabel:** `DELETE FROM Score;`
 
 ## Info Package

@@ -88,16 +88,16 @@ const Achievement: React.FC<AchievementProps> = ({ isDesktop, setModalScore, isO
             kritik
           </span>
           <span className="text-[10px] font-black tabular-nums">
-            {Math.min(feedbackNumber, 5)} / 5
+            {Math.min(feedbackNumber, 4)} / 4
           </span>
         </div>
         <div className="h-3 border-2 border-black dark:border-neo-yellow bg-neo-bg dark:bg-zinc-950 overflow-hidden">
           <motion.div
             className="h-full bg-neo-yellow dark:bg-neo-yellow"
             initial={{ width: 0 }}
-            // Menghitung persentase: (nilai saat ini / 5) * 100
-            // Math.min memastikan lebar maksimal berhenti di 100% jika feedbackNumber > 5
-            animate={{ width: `${Math.min((feedbackNumber / 5) * 100, 100)}%` }}
+            // Menghitung persentase: (nilai saat ini / 4) * 100
+            // Math.min memastikan lebar maksimal berhenti di 100% jika feedbackNumber >= 4
+            animate={{ width: `${Math.min((feedbackNumber / 4) * 100, 100)}%` }}
             transition={{ duration: 0.5, ease: "easeOut" }}
           />
         </div>
