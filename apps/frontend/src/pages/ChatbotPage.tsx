@@ -87,7 +87,7 @@ export default function ChatbotPage() {
         try {
             const response = await axios.post(`${BACKEND_URL}/recom-target`, payload);
             toast.success(response.data.message);
-            setSelectedMatkulItems(selectedMKIds); // dipakan di about
+            setSelectedMatkulItems(selectedMKIds); // dipakai di about
 
             // message juga harus berisi category
             setMessages((prev) => {

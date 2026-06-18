@@ -3,6 +3,7 @@ import { RatingModal } from './RatingModal';
 import { useUIStore } from '@/stores/useUIStore';
 import { useChatPresenter } from '@/hooks/useChatPresenter';
 import useOnlineStatus from '@/hooks/useOnlineStatus';
+import { STORAGE_VERSION } from '@/constants';
 
 const Sidebar = ({
     isNavbarVisible,
@@ -25,7 +26,7 @@ const Sidebar = ({
                 <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest border-b-2 border-black dark:border-neo-yellow pb-2 mb-3">
                     <span>{`${msgCount} Pesan`}</span>
                     <span className="bg-neo-yellow text-black px-1.5 py-0.5 rounded-none font-bold">
-                        v1.0.4
+                        {STORAGE_VERSION}
                     </span>
                 </div>
                 <button

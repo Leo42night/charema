@@ -51,7 +51,6 @@ export const useAuthStore = create<AuthState>()(
             logout: () => {
                 set({ user: null, token: null, recScores: null, selectedMatkulItems: [], rating: null, feedbackNumber: 0 })
                 useChatStore.getState().clearMessages();
-                useChatStore.getState().clearAchievements();
                 toast("Logged out successfully");
             },
         }),

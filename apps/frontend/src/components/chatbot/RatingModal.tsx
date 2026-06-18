@@ -18,7 +18,8 @@ export const RatingModal: React.FC<RatingModalProps> = ({ isOpen, onClose, onSuc
   const token = useAuthStore((state) => state.token);
   const setRating = useAuthStore((state) => state.setRating);
   const rating = useAuthStore((state) => state.rating);
-  const tags = useChatStore((s) => s.tags)
+  const tags = useChatStore((s) => s.tags);
+  const dismissSave = useChatStore((s) => s.dismissSave);
 
   // State untuk menyimpan skor rating (1-5)
   const [scoreCF, setScoreCF] = useState<number>(0);
@@ -69,6 +70,8 @@ export const RatingModal: React.FC<RatingModalProps> = ({ isOpen, onClose, onSuc
         }
       );
       setRating({ score_cf: scoreCF, score_chat: scoreChat });
+
+      dismissSave();
 
       toast.success("Terima kasih! Progress disimpan.");
       if (onSuccess) onSuccess(response.data.data);

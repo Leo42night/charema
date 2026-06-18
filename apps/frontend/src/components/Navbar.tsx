@@ -9,6 +9,7 @@ import { useUIStore } from "@/stores/useUIStore";
 import { useChatPresenter } from "@/hooks/useChatPresenter";
 import useOnlineStatus from "@/hooks/useOnlineStatus";
 import { RatingModal } from "./chatbot/RatingModal";
+import { STORAGE_VERSION } from "@/constants";
 
 const NAV_ITEMS = [
   { label: "Chatbot", href: "/" },
@@ -107,7 +108,7 @@ export default function Navbar() {
 
           {/* Logo */}
           <div className="shrink-0 border-neo border-black bg-black px-2.5 py-1 text-sm font-bold tracking-tighter text-neo-yellow dark:border-neo-yellow sm:text-base">
-            BOT//AI
+            ChaReMa
           </div>
 
           {/* Desktop Links */}
@@ -233,7 +234,7 @@ export default function Navbar() {
         ${menuOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
         <div className="flex items-center justify-between border-b-4 border-neo-yellow bg-black p-4 text-neo-yellow">
-          <span className="font-bold tracking-tighter">BOT//AI</span>
+          <span className="font-bold tracking-tighter">ChaReMa</span>
           <button
             className="flex h-7 w-7 items-center justify-center border-2 border-neo-yellow text-neo-yellow hover:bg-neo-yellow hover:text-black"
             onClick={() => setMenuOpen(false)}
@@ -270,7 +271,7 @@ export default function Navbar() {
           <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest border-b-2 border-black dark:border-neo-yellow pb-2 mb-3">
             <span>{`${msgCount} Pesan`}</span>
             <span className="bg-neo-yellow text-black px-1.5 py-0.5 rounded-none font-bold">
-              v1.0.4
+              {STORAGE_VERSION}
             </span>
           </div>
           <button

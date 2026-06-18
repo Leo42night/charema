@@ -4,8 +4,6 @@ import { persist } from "zustand/middleware";
 import type { Message } from "@/types";
 const audioAchivement = new Audio('/game-bonus.mp3');
 
-const TOTAL_TAGS = 8;
-
 interface FeedbackData {
   inputChat: string;      // Pesan yang dikirim user sebelumnya
   systemResponse: string; // Balasan dari system yang diberi masukan
@@ -27,16 +25,17 @@ interface ChatStore {
 
   // ── Achievement ─────────────────────────────────────────────────────────────
   tags: string[];
-  percentageAchieved: number;
   /** null = tidak ada toast */
   toastTag: string | null;
+  canSave: boolean;
   /**
    * Panggil setiap kali predictedTag datang dari model.
    * Kalau tag baru → disimpan ke persist + trigger toast.
    */
   unlockTag: (tag: string) => void;
+  setTags: (newTags: string[]) => void;
+  dismissSave: () => void;
   dismissToast: () => void;
-  clearAchievements: () => void;
 }
 
 export const useChatStore = create<ChatStore>()(
@@ -56,7 +55,6 @@ export const useChatStore = create<ChatStore>()(
       appendMessage: (msg) =>
         set((state) => ({ messages: [...state.messages, msg] })),
 
-      clearMessages: () => set({ messages: [] }),
 
       // ── Achievement ──────────────────────────────────────────────────────────
       feedback: {}, // Initial state berupa objek kosong
@@ -81,8 +79,8 @@ export const useChatStore = create<ChatStore>()(
         }),
 
       tags: [],
-      percentageAchieved: 0,
       toastTag: null,
+      canSave: false,
 
       unlockTag: (tag) => {
         const { tags } = get();
@@ -92,18 +90,15 @@ export const useChatStore = create<ChatStore>()(
         const next = [...tags, tag];
         set({
           tags: next,
-          percentageAchieved: Math.min(
-            Math.floor((next.length / TOTAL_TAGS) * 100),
-            100
-          ),
           toastTag: tag,
+          canSave: true
         });
       },
+      setTags: (newTags) => set({ tags: newTags }),
 
+      dismissSave: () => set({ canSave: false }),
       dismissToast: () => set({ toastTag: null }),
-
-      clearAchievements: () =>
-        set({ tags: [], percentageAchieved: 0, toastTag: null }),
+      clearMessages: () => set({ messages: [], tags: [], canSave: false, toastTag: null }),
     }),
     {
       name: "chat-store",
@@ -111,7 +106,7 @@ export const useChatStore = create<ChatStore>()(
       partialize: (state) => ({
         messages: state.messages,
         tags: state.tags,
-        percentageAchieved: state.percentageAchieved,
+        canSave: state.canSave
       }),
     }
   )

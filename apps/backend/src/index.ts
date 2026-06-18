@@ -78,7 +78,7 @@ export const createApp = (getPrisma: () => DbClient) => {
       if (user_data.user_key) {
         responseData['recommendations'] = recommendations[user_data.user_key.toString()] || {};
 
-        // 4. number feedback, ambil feedback by user_key
+        // 4.a. number feedback, ambil feedback by user_key (opsi 1)
         responseData['user_feedback_number'] = await getPrisma().feedback.count({
           where: {
             user_key: user_data.user_key, // Kolom relasi user_key di tabel database
@@ -93,6 +93,20 @@ export const createApp = (getPrisma: () => DbClient) => {
           orderBy: {
             created_at: 'desc', // updated_at akan di update
           }
+        });
+
+        // 6. ambil Tags Achivement
+        responseData['user_achievement'] = (await getPrisma().achievement.findUnique({
+          where: {
+            user_key: user_data.user_key,
+          },
+        }))?.tags;
+      } else if (user_data.email) {
+        // 4.b. number feedback, ambil feedback by email (opsi 2, bukan target)
+        responseData['user_feedback_number'] = await getPrisma().feedback.count({
+          where: {
+            email: user_data.email, // Kolom relasi user_key di tabel database
+          },
         });
       }
 
@@ -131,10 +145,7 @@ export const createApp = (getPrisma: () => DbClient) => {
 
             result = await getPrisma().recomTarget.update({
               where: { id: latest!.id },
-              data: {
-                matkul_ids,
-                updated_at: new Date(),
-              },
+              data: { matkul_ids },
             });
 
             return {
@@ -247,17 +258,17 @@ export const createApp = (getPrisma: () => DbClient) => {
             : { email: email! };
 
           // 3. Cek jumlah feedback
-          const count = await getPrisma().feedback.count({ where: whereClause });
+          let count = await getPrisma().feedback.count({ where: whereClause });
 
           if (count >= 4) {
-            // Update yang terbaru
-            const latest = await getPrisma().feedback.findFirst({
+            // Update yang terlama
+            const oldest = await getPrisma().feedback.findFirst({
               where: whereClause,
-              orderBy: { created_at: 'desc' },
+              orderBy: { created_at: 'asc' },
             });
 
             await getPrisma().feedback.update({
-              where: { id: latest!.id },
+              where: { id: oldest!.id },
               data: { input, res_tag, res_message, feedback },
             });
           } else {
@@ -265,6 +276,7 @@ export const createApp = (getPrisma: () => DbClient) => {
             await getPrisma().feedback.create({
               data: { user_key, email, input, res_tag, res_message, feedback },
             });
+            count = count + 1;
           }
           return { count, message: "Feedback submitted" };
         } catch (error: any) {

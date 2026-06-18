@@ -11,6 +11,8 @@ import {
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useChatStore } from "@/stores/useChatStore";
 
+const TOTAL_TAGS = 8;
+
 interface AchievementProps {
   isDesktop: boolean;
   setModalScore: (modalScore: boolean) => void;
@@ -19,18 +21,19 @@ interface AchievementProps {
 
 const Achievement: React.FC<AchievementProps> = ({ isDesktop, setModalScore, isOnline }) => {
   const user = useAuthStore((s) => s.user);
-  const feedbackNumber = useAuthStore((state) => state.feedbackNumber)
+  const feedbackNumber = useAuthStore((state) => state.feedbackNumber);
   const tags = useChatStore((s) => s.tags);
-  const percentageAchieved = useChatStore((s) => s.percentageAchieved);
-  const [saveActive, setSaveActive] = useState(false);
+  const canSave = useChatStore((s) => s.canSave);
+  const [percentageAchieved, setPercentageAchieved] = useState<number>(0);
 
+  // update progress tags
   useEffect(() => {
-    if (user?.user_key) {
-      setSaveActive(true);
-    } else {
-      setSaveActive(false);
-    }
-  }, [user?.user_key]);
+    const newPercentage = Math.min(
+      Math.floor((tags.length / TOTAL_TAGS) * 100),
+      100
+    );
+    setPercentageAchieved(newPercentage);
+  }, [tags]);
 
   return (
     <div className={`${isDesktop && `neo-box`} p-3 dark:border-neo-yellow bg-white dark:bg-zinc-900`}>
@@ -62,7 +65,7 @@ const Achievement: React.FC<AchievementProps> = ({ isDesktop, setModalScore, isO
       </div>
 
       {/* Tombol Save Progress Neo-Brutalist */}
-      {saveActive && (
+      {user && canSave && (
         <button
           onClick={() => setModalScore(true)}
           disabled={!isOnline}

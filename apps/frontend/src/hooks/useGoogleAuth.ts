@@ -6,6 +6,7 @@ import nimToUserJson from "../data/nim_to_user.json"; // sesuaikan path file jso
 import { toast } from "sonner";
 import { BACKEND_URL } from "@/constants";
 import { useState } from "react";
+import { useChatStore } from "@/stores/useChatStore";
 
 // Definisikan tipe untuk map JSON agar TypeScript tidak error
 const nimMap: Record<string, number> = nimToUserJson;
@@ -17,6 +18,8 @@ export const useGoogleAuth = () => {
     const setFeedbackNumber = useAuthStore((s) => s.setFeedbackNumber)
     const setRecScores = useAuthStore((s) => s.setRecScores)
     const setSelectedMatkulItems = useAuthStore((s) => s.setSelectedMatkulItems)
+    const setTags = useChatStore((s) => s.setTags);
+    const clearMessages = useChatStore((s) => s.clearMessages);
 
     const handleGoogleSuccess = async (tokenResponse: TokenResponse) => {
         try {
@@ -28,40 +31,17 @@ export const useGoogleAuth = () => {
             });
 
             const email = resG.data.email.toLowerCase();
-            // if (!email.endsWith("@student.untan.ac.id")) { // email apapun dapat kasih feedback
-            //     toast.error("silakan pakai akun student.untan.ac.id",
-            //         {
-            //             position: "top-center", action: {
-            //                 label: 'Login Lagi',
-            //                 onClick: () => login(),
-            //             },
-            //         }
-            //     );
-            //     return;
-            // }
-
-            // console.log("email", email)
 
             // Regex ini menangkap huruf di depan (jika ada) dan semua angka setelahnya sebelum tanda @
             const nimMatch = email.match(/^([a-zA-Z0-9]+)@/);
             const nim = nimMatch ? nimMatch[1].toUpperCase() : null;
             // 3. Cari user_key berdasarkan NIM di file JSON
+            const dummyUserKey = 4404;
             const userKey = nim && nimMap[nim] ? nimMap[nim] :
-                (nim === "H1101221016" ? 1369 : 4404);
-            // 519 (siskom), 1369 (sisfo), 4404 = H110123DUMY untuk akun dummy
+                (nim === "H1101221016" ? 1369 : dummyUserKey);
+            // 519 (siskom), 1369 (sisfo), 4404 = H11ACC3DUMY untuk akun dummy
 
             console.log("userKey :", userKey);
-
-            if (!userKey) {
-                toast.error("Akses Rekomendasi tidak diberikan!",
-                    {
-                        description: "Bukan mahasiswa Sisfo & Siskom akt. 2023-2025",
-                        position: "top-center",
-                        descriptionClassName: "text-red-500! dark:text-neo-red font-medium"
-                    }
-                );
-                // return;
-            }
 
             const userData: UserData = {
                 name: resG.data.name,
@@ -77,7 +57,7 @@ export const useGoogleAuth = () => {
                 access_token: tokenResponse.access_token,
                 user_data: userData,
             }); // user_recomTarget_one
-            // console.log("Response dari backend:", backendRes.data); // Debug: lihat response dari backend
+            console.log("Response dari backend:", backendRes.data); // Debug: lihat response dari backend
 
             const jwtToken = backendRes.data.token;
 
@@ -96,16 +76,31 @@ export const useGoogleAuth = () => {
                 setRecScores(sortedScores); // matkul, category score, category_matkul
             }
 
+            const dataLoaded: string[] = [];
+
             if (backendRes.data.user_feedback_number && backendRes.data.user_feedback_number > 0) {
                 setFeedbackNumber(backendRes.data.user_feedback_number);
-                toast.success("Feedback data dimuat.", { position: "top-center" });
+                dataLoaded.push("Feedback");
             }
 
             if (backendRes.data.user_recomTarget_one) { // jika sudah pernah submit matkul
                 // console.log("backendRes.data.user_recomTarget_one", backendRes.data.user_recomTarget_one);
-                toast.success("Selected Matkul data dimuat.", { position: "top-center" });
                 setSelectedMatkulItems(backendRes.data.user_recomTarget_one.matkul_ids)
+                dataLoaded.push("Selected Matkul");
             }
+
+            // jika ada progress achivement
+            if (backendRes.data.user_achievement) {
+                clearMessages()// reset ulang message, handle tags inconsistent
+
+                if (userKey !== dummyUserKey) {
+                    setTags(backendRes.data.user_achievement);
+                    dataLoaded.push("Achievement");
+                } else {
+                    setTags([]);
+                }
+            }
+            if (dataLoaded.length > 0) toast.success(`Riwayat [${dataLoaded.join(', ')}] dimuat.`, { position: "top-center" });
 
             // console.log("Login berhasil!");
         } catch (err: any) {

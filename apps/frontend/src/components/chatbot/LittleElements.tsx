@@ -69,6 +69,7 @@ export const MessageBubble = ({ msg }: { msg: Message }) => {
                     }
                 }
             );
+            console.log("response.data", response.data);
             setFeedbackNumber(response.data.count);
             toast.info("berhasil mengirim feedback.");
         } catch (error: any) {

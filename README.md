@@ -31,7 +31,8 @@ Proyek Monorepo dikelola menggunakan [BunJs](https://bun.com/), kode dengan [Typ
 
 ## Progress Dev
 - Handle view category & view rekap
-- Hasil response rekomendasi menggunakan API LLM Chatbot 
+- Hasil response rekomendasi menggunakan API LLM Chatbot
+- Issue: Kritik & Unlock tags tidak terload load dari backend saat login (reset saat login)
 
 ## Build Process
 Jika setup sudah selesai tapi ada perubahan berkala di kode. [Detail cara build ke AWS](https://github.com/Leo42night/ppwl-caps)

@@ -20,7 +20,7 @@ model RecomTarget {
   // !!! skema item_matkul.json perlu diarchive jika ada update
   matkul_ids  Json
   created_at  DateTime   @default(now()) // save tiap ada data baru
-  updated_at  DateTime   @default(now()) // max 3 kali, setelah itu mode upsert
+  updated_at  DateTime   @updatedAt // max 3 kali, setelah itu mode upsert data lama
 }
 
 // POST progress untuk simpan Score & Achievement 
@@ -38,7 +38,7 @@ model Achievement {
   created_at  DateTime   @default(now()) // interaksi pertama (walaupun tidak langsung simpan)
 }
 
-// Feedback di limit 4 saja, jika ada feedback baru, lakukan upsert
+// Feedback di limit 4 saja, jika ada feedback baru, lakukan upsert data lama
 model Feedback {
   id          Int   @id @default(autoincrement())
   user_key    Int? // jika tidak ada maka email wajib
@@ -47,5 +47,5 @@ model Feedback {
   res_tag     String // "greeting"
   res_message String
   feedback    String
-  created_at  DateTime   @default(now())
+  created_at  DateTime   @updatedAt // jika update, maka berubah
 }
