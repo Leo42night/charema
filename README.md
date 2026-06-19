@@ -57,7 +57,7 @@ bun build src/lambda.ts --outdir dist-lambda --target node --format cjs --extern
 
 # copy Generated Prisma Client (postgres), dependency, & certificate
 ## Versi Windows CMD
-xcopy /s /i /e src\generated\prisma-pg dist-lambda\generated\prisma-pg
+xcopy src\generated\prisma-pg dist-lambda\generated\prisma-pg /i /e /y
 ### -- masukkan SSH & node_modules/.prisma ke folder dist-lambda/ -- 
 if not exist "dist-lambda\cert" mkdir "dist-lambda\cert" && xcopy /y "cert\global-bundle.pem" "dist-lambda\cert\"
 ```

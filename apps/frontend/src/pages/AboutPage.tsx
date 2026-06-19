@@ -231,58 +231,6 @@ const AboutPage = () => {
                 Tonton video di atas untuk memahami cara menggunakan sistem rekomendasi ini secara lengkap.
               </p>
             </div>
-
-            {/* Kontainer Static Data Latih */}
-            <div className="mb-4 md:mb-0 border-2 border-black dark:border-neo-yellow p-3 bg-white dark:bg-zinc-900 shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#facc15]">
-              {/* HEADING: Judul & Deskripsi Data Latih */}
-              <div className="border-b-2 border-black dark:border-neutral-700 pb-2">
-                <div className="flex items-center gap-2">
-                  <Database className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 stroke-3 shrink-0" />
-                  <h3 className="text-xs font-black uppercase tracking-wide">
-                    Dataset Model Rekomendasi
-                  </h3>
-                </div>
-                <p className="text-[9px] font-bold text-neutral-600 dark:text-neutral-400 mt-1 leading-relaxed">
-                  Data diambil dari nilai akademik <span className="font-black text-black dark:text-white">{rekap.total_user_nim.toLocaleString('en-US')} Mahasiswa</span> pada rentang waktu semester <span className="font-black text-black dark:text-white">2021 (Ganjil) – 2025 (Genap)</span>.
-                </p>
-              </div>
-
-              {/* Bagian 1: Grid Ringkasan (Matkul & Dataset) */}
-              <div className="grid grid-cols-2 gap-2 mt-2.5">
-                <div className="border-2 border-black dark:border-neutral-700 p-2 bg-blue-100 dark:bg-blue-950/40 flex flex-col justify-between shadow-[2px_2px_0_0_#000] dark:shadow-[2px_2px_0_0_rgba(0,0,0,0.5)]">
-                  <span className="text-[9px] font-black uppercase opacity-60 leading-none dark:text-blue-300">Jumlah Matkul</span>
-                  <span className="text-xl font-black mt-1 leading-none dark:text-blue-400">{rekap.total_matkul}</span>
-                </div>
-                <div className="border-2 border-black dark:border-neutral-700 p-2 bg-green-100 dark:bg-green-950/40 flex flex-col justify-between shadow-[2px_2px_0_0_#000] dark:shadow-[2px_2px_0_0_rgba(0,0,0,0.5)]">
-                  <span className="text-[9px] font-black uppercase opacity-60 leading-none dark:text-green-300">Jumlah Dataset</span>
-                  <span className="text-xl font-black mt-1 leading-none dark:text-green-400">{rekap.total_data_latih.toLocaleString("en-US")}</span>
-                </div>
-              </div>
-
-              {/* Bagian 2: Pengecualian / Data Kosong */}
-              <div className="border-2 border-black dark:border-neutral-700 p-2 bg-red-50 dark:bg-red-950/20 shadow-[2px_2px_0_0_#000] dark:shadow-[2px_2px_0_0_rgba(0,0,0,0.5)] mt-2.5">
-                <div className="text-[9px] font-black uppercase text-red-600 dark:text-red-400 mb-1.5 flex items-center gap-1 leading-none">
-                  <span className="inline-block w-1.5 h-1.5 bg-red-600 dark:bg-red-400 rounded-full animate-pulse"></span>
-                  Rentang Waktu Tidak Tersedia:
-                </div>
-                <ul className="flex flex-col gap-1 text-[9px] font-bold text-neutral-700 dark:text-neutral-300">
-                  <li className="flex items-center justify-between border-b border-black/5 dark:border-white/5 pb-0.5 last:border-0 last:pb-0">
-                    <div className="flex items-center gap-1.5">
-                      <span className="px-1 py-px bg-black text-white dark:bg-zinc-700 font-black text-[7px] tracking-wide shrink-0">RESISKOM</span>
-                      <span>2025 Genap</span>
-                    </div>
-                    <span className="opacity-50 text-[8px] font-normal">(Januari-Juni)</span>
-                  </li>
-                  <li className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5">
-                      <span className="px-1 py-px bg-zinc-600 dark:bg-zinc-500 text-white font-black text-[7px] tracking-wide shrink-0">SISFO</span>
-                      <span>2025 Genap</span>
-                    </div>
-                    <span className="opacity-50 text-[8px] font-normal">(Januari-Juni)</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
           </div>
 
           {/* Kolom Kanan: Panel Statistik Neobrutalism */}
@@ -466,6 +414,58 @@ const AboutPage = () => {
                 )}
               </div>
 
+            </div>
+
+            {/* Kontainer Static Data Latih */}
+            <div className="mb-4 md:mb-0 border-2 border-black dark:border-neo-yellow p-3 bg-white dark:bg-zinc-900 shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#facc15]">
+              {/* HEADING: Judul & Deskripsi Data Latih */}
+              <div className="border-b-2 border-black dark:border-neutral-700 pb-2">
+                <div className="flex items-center gap-2">
+                  <Database className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400 stroke-3 shrink-0" />
+                  <h3 className="text-xs font-black uppercase tracking-wide">
+                    Dataset Model Rekomendasi
+                  </h3>
+                </div>
+                <p className="text-[9px] font-bold text-neutral-600 dark:text-neutral-400 mt-1 leading-relaxed">
+                  Data diambil dari nilai akademik <span className="font-black text-black dark:text-white">{rekap.total_user_nim.toLocaleString('en-US')} Mahasiswa</span> pada rentang waktu semester <span className="font-black text-black dark:text-white">2021 (Ganjil) – 2025 (Genap)</span>.
+                </p>
+              </div>
+
+              {/* Bagian 1: Grid Ringkasan (Matkul & Dataset) */}
+              <div className="grid grid-cols-2 gap-2 mt-2.5">
+                <div className="border-2 border-black dark:border-neutral-700 p-2 bg-blue-100 dark:bg-blue-950/40 flex flex-col justify-between shadow-[2px_2px_0_0_#000] dark:shadow-[2px_2px_0_0_rgba(0,0,0,0.5)]">
+                  <span className="text-[9px] font-black uppercase opacity-60 leading-none dark:text-blue-300">Jumlah Matkul</span>
+                  <span className="text-xl font-black mt-1 leading-none dark:text-blue-400">{rekap.total_matkul}</span>
+                </div>
+                <div className="border-2 border-black dark:border-neutral-700 p-2 bg-green-100 dark:bg-green-950/40 flex flex-col justify-between shadow-[2px_2px_0_0_#000] dark:shadow-[2px_2px_0_0_rgba(0,0,0,0.5)]">
+                  <span className="text-[9px] font-black uppercase opacity-60 leading-none dark:text-green-300">Jumlah Dataset</span>
+                  <span className="text-xl font-black mt-1 leading-none dark:text-green-400">{rekap.total_data_latih.toLocaleString("en-US")}</span>
+                </div>
+              </div>
+
+              {/* Bagian 2: Pengecualian / Data Kosong */}
+              <div className="border-2 border-black dark:border-neutral-700 p-2 bg-red-50 dark:bg-red-950/20 shadow-[2px_2px_0_0_#000] dark:shadow-[2px_2px_0_0_rgba(0,0,0,0.5)] mt-2.5">
+                <div className="text-[9px] font-black uppercase text-red-600 dark:text-red-400 mb-1.5 flex items-center gap-1 leading-none">
+                  <span className="inline-block w-1.5 h-1.5 bg-red-600 dark:bg-red-400 rounded-full animate-pulse"></span>
+                  Rentang Waktu Tidak Tersedia:
+                </div>
+                <ul className="flex flex-col gap-1 text-[9px] font-bold text-neutral-700 dark:text-neutral-300">
+                  <li className="flex items-center justify-between border-b border-black/5 dark:border-white/5 pb-0.5 last:border-0 last:pb-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="px-1 py-px bg-black text-white dark:bg-zinc-700 font-black text-[7px] tracking-wide shrink-0">RESISKOM</span>
+                      <span>2025 Genap</span>
+                    </div>
+                    <span className="opacity-50 text-[8px] font-normal">(Januari-Juni)</span>
+                  </li>
+                  <li className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <span className="px-1 py-px bg-zinc-600 dark:bg-zinc-500 text-white font-black text-[7px] tracking-wide shrink-0">SISFO</span>
+                      <span>2025 Genap</span>
+                    </div>
+                    <span className="opacity-50 text-[8px] font-normal">(Januari-Juni)</span>
+                  </li>
+                </ul>
+              </div>
             </div>
 
           </div>

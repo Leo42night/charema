@@ -11,39 +11,43 @@ interface FeedbackData {
 }
 
 interface ChatStore {
-  // ── Chat ────────────────────────────────────────────────────────────────────
   messages: Message[]; // riwayat pesan
   // Menggunakan Record<id_pesan, isi_saran> agar tiap pesan punya catatan feedback unik
   feedback: Record<number, FeedbackData>;
+  tags: string[];
+  /** null = tidak ada toast */
+  toastTag: string | null;
+  canSave: boolean;
+
+  // ── Chat ────────────────────────────────────────────────────────────────────
   setFeedback: (
     id: number,
     updater: Partial<FeedbackData> | ((prev: FeedbackData) => Partial<FeedbackData>)
   ) => void;
   setMessages: (updater: Message[] | ((prev: Message[]) => Message[])) => void;
   appendMessage: (msg: Message) => void;
-  clearMessages: () => void;
 
   // ── Achievement ─────────────────────────────────────────────────────────────
-  tags: string[];
-  /** null = tidak ada toast */
-  toastTag: string | null;
-  canSave: boolean;
   /**
-   * Panggil setiap kali predictedTag datang dari model.
-   * Kalau tag baru → disimpan ke persist + trigger toast.
-   */
+     * Panggil setiap kali predictedTag datang dari model.
+     * Kalau tag baru → disimpan ke persist + trigger toast.
+     */
   unlockTag: (tag: string) => void;
   setTags: (newTags: string[]) => void;
   dismissSave: () => void;
   dismissToast: () => void;
+  clearMessages: () => void;
 }
 
 export const useChatStore = create<ChatStore>()(
   persist(
     (set, get) => ({
-      // ── Chat ────────────────────────────────────────────────────────────────
       messages: [],
+      tags: [],
+      toastTag: null,
+      canSave: false,
 
+      // ── Chat ────────────────────────────────────────────────────────────────
       setMessages: (updater) =>
         set((state) => ({
           messages:
@@ -78,9 +82,7 @@ export const useChatStore = create<ChatStore>()(
           };
         }),
 
-      tags: [],
-      toastTag: null,
-      canSave: false,
+
 
       unlockTag: (tag) => {
         const { tags } = get();

@@ -147,11 +147,11 @@ export default function MatkulModal({
                 <div className="flex items-center justify-between p-3 border-b-2 border-black dark:border-neo-yellow shrink-0">
                     <div className="flex flex-col">
                         <span className="font-black uppercase tracking-widest text-xs">
-                            pilih minimal 10 mata kuliah favorit anda
+                            pilih mata kuliah favorit anda
                         </span>
                         {totalMatkul > 0 && (
                             <span className="text-[9px] opacity-50 mt-0.5">
-                                {totalMatkul} MK direkomendasikan
+                                Terdapat {totalMatkul} opsi MK
                             </span>
                         )}
                     </div>
