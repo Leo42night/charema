@@ -1,6 +1,5 @@
 // src/components/onboarding/TourGuide.tsx
 import { useEffect, useState, useCallback } from "react";
-import { createPortal } from "react-dom";
 import type { CallBackProps, Step, TooltipRenderProps } from "react-joyride";
 import Joyride, { EVENTS, STATUS } from "react-joyride";
 import { X, ArrowRight, ArrowLeft, SkipForward, Play } from "lucide-react";
@@ -14,6 +13,7 @@ interface TourGuideProps {
     onOpenDrawer?: () => void;
     onCloseDrawer?: () => void;
 }
+
 
 const STEP_META = [
     { label: "Selamat Datang", icon: "👋" },
@@ -38,41 +38,6 @@ const getTarget = (index: number) => {
     return isMobile() ? entry[1] : entry[0];
 };
 
-// ─── Spotlight Clone Portal ──────────────────────────────────────────────────
-const SpotlightPortal = ({ index }: { index: number }) => {
-    const [spotlightEl, setSpotlightEl] = useState<Element | null>(null);
-    const [cloneEl, setCloneEl] = useState<Element | null>(null);
-
-    useEffect(() => {
-        setSpotlightEl(null);
-        setCloneEl(null);
-
-        const selector = getTarget(index);
-        if (!selector) return;
-
-        const timer = setTimeout(() => {
-            const spotlight = document.querySelector(".react-joyride__spotlight");
-            const target = document.querySelector(selector);
-            if (spotlight && target) {
-                setSpotlightEl(spotlight);
-                setCloneEl(target);
-            }
-        }, 50);
-
-        return () => clearTimeout(timer);
-    }, [index]);
-
-    if (!spotlightEl || !cloneEl) return null;
-
-    return createPortal(
-        <div
-            style={{ pointerEvents: "none" }}
-            dangerouslySetInnerHTML={{ __html: cloneEl.outerHTML }}
-        />,
-        spotlightEl
-    );
-};
-
 // ─── Custom Tooltip ──────────────────────────────────────────────────────────
 const CustomTooltip = ({
     index, isLastStep, step,
@@ -84,7 +49,6 @@ const CustomTooltip = ({
             className="relative bg-neo-yellow border-2 border-black"
             style={{ width: index === 0 ? 520 : 360, maxWidth: "calc(100vw - 32px)" }}
         >
-            {/* Header */}
             <div className="flex items-center justify-between px-4 py-2.5 border-b-2 border-black bg-black text-neo-yellow">
                 <div className="flex items-center gap-2">
                     <span>{STEP_META[index].icon}</span>
@@ -101,10 +65,8 @@ const CustomTooltip = ({
                 </button>
             </div>
 
-            {/* Content */}
             <div className="p-5">{step.content}</div>
 
-            {/* Footer */}
             <div className="flex items-center justify-between px-3 sm:px-5 pb-3 sm:pb-4">
                 <span className="text-[8px] sm:text-[9px] font-black text-black uppercase opacity-60 tracking-widest">
                     {index + 1} / {STEP_META.length}
@@ -136,7 +98,7 @@ const WelcomeContent = () => (
     <div className="flex flex-col gap-4">
         <div>
             <h2 className="text-xl font-black leading-tight">
-                Selamat datang di <span className="bg-black text-neo-yellow px-1">Akademik Bot</span>
+                Selamat datang di <span className="bg-black text-neo-yellow px-1">Charema [vt1]</span>
             </h2>
             <p className="mt-2 text-[12px] leading-relaxed text-zinc-800">
                 Sistem rekomendasi mata kuliah berbasis kecerdasan buatan untuk membantu perencanaan akademis kamu.
@@ -199,7 +161,6 @@ const ChatContent = () => (
             <div className="text-[9px] font-black uppercase tracking-widest opacity-50 mb-2">Contoh pertanyaan pertama</div>
             <div className="flex items-center gap-2 px-2 py-2 bg-zinc-100 border border-zinc-300">
                 <span className="text-[12px] italic text-zinc-700">"siapa anda?"</span>
-                <span className="ml-auto text-[8px] text-zinc-400 font-bold uppercase">coba ini →</span>
             </div>
         </div>
         <p className="text-[10px] text-zinc-800">Bot akan memandu kamu langkah demi langkah untuk mendapatkan rekomendasi mata kuliah yang tepat.</p>
@@ -222,7 +183,6 @@ const SidebarContent = () => (
 const TourGuide = ({ start, setStartTour, onTourEnd, onOpenDrawer, onCloseDrawer }: TourGuideProps) => {
     const [{ run, stepIndex }, setState] = useState({ run: start, stepIndex: 0 });
 
-    // Resolve target selector berdasarkan device saat ini
     const resolveSteps = (): Step[] => [
         { content: <WelcomeContent />, placement: "center", target: "body", disableBeacon: true },
         { content: <NavbarContent />, placement: isMobile() ? "right" : "bottom", target: getTarget(1) ?? "body", disableBeacon: true, spotlightPadding: 12 },
@@ -239,18 +199,13 @@ const TourGuide = ({ start, setStartTour, onTourEnd, onOpenDrawer, onCloseDrawer
         }
     }, [start]);
 
-    // Buka/tutup drawer sesuai kebutuhan step
     const handleDrawerForStep = useCallback((nextIndex: number) => {
         if (!isMobile()) return;
-
-        // Step 1 & 3 butuh drawer terbuka
         const needsDrawer = nextIndex === 1 || nextIndex === 3;
-        // Step 2 (chat) — tutup drawer agar chat area terlihat
         const needsDrawerClosed = nextIndex === 2;
 
         if (needsDrawer) {
             onOpenDrawer?.();
-            // Tunggu animasi drawer (200ms) sebelum Joyride render spotlight
         } else if (needsDrawerClosed) {
             onCloseDrawer?.();
         }
@@ -263,7 +218,9 @@ const TourGuide = ({ start, setStartTour, onTourEnd, onOpenDrawer, onCloseDrawer
             const next = action === "prev" ? index - 1 : index + 1;
             handleDrawerForStep(next);
 
-            // Delay update stepIndex agar drawer punya waktu animasi
+            // Delay tetap perlu di sini: bukan untuk clone,
+            // tapi kasih waktu drawer selesai animasi SEBELUM
+            // Joyride mencari elemen target barunya sendiri.
             const delay = isMobile() && (next === 1 || next === 3) ? 220 : 0;
             setTimeout(() => {
                 setState(prev => ({ ...prev, stepIndex: next }));
@@ -271,7 +228,7 @@ const TourGuide = ({ start, setStartTour, onTourEnd, onOpenDrawer, onCloseDrawer
         }
 
         if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status as typeof STATUS.FINISHED)) {
-            onCloseDrawer?.(); // Pastikan drawer tertutup saat tour selesai
+            onCloseDrawer?.();
             setState({ run: false, stepIndex: 0 });
             setStartTour(false);
             onTourEnd();
@@ -279,27 +236,25 @@ const TourGuide = ({ start, setStartTour, onTourEnd, onOpenDrawer, onCloseDrawer
     }, [handleDrawerForStep, onCloseDrawer, onTourEnd, setStartTour]);
 
     return (
-        <>
-            <SpotlightPortal index={stepIndex} />
-            <Joyride
-                continuous
-                run={run}
-                steps={steps}
-                stepIndex={stepIndex}
-                callback={handleCallback}
-                tooltipComponent={CustomTooltip}
-                scrollToFirstStep
-                spotlightPadding={10}
-                styles={{
-                    options: {
-                        zIndex: 9998,
-                        overlayColor: "rgba(0, 0, 0, 0.85)",
-                        arrowColor: "#facc15",
-                    },
-                    spotlight: { border: "2px solid #facc15" },
-                }}
-            />
-        </>
+        <Joyride
+            continuous
+            run={run}
+            steps={steps}
+            stepIndex={stepIndex}
+            callback={handleCallback}
+            tooltipComponent={CustomTooltip}
+            scrollToFirstStep
+            disableScrollParentFix
+            spotlightPadding={10}
+            styles={{
+                options: {
+                    zIndex: 9998,
+                    overlayColor: "rgba(0, 0, 0, 0.85)",
+                    arrowColor: "#facc15",
+                },
+                spotlight: { border: "2px solid #facc15" },
+            }}
+        />
     );
 };
 
