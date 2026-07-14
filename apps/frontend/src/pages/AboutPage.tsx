@@ -1,13 +1,14 @@
 // pages/AboutPage.tsx
+import { Database, Play, Star, Trophy, Users } from "lucide-react";
+import axios from "axios";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useRecomToMatkul } from "@/hooks/useRecomToMatkul";
+import { useLeaderboard } from "@/hooks/useLeaderboard";
 import { RekomResult } from "@/components/RekomResult";
 
 import { useEffect, useMemo, useState } from "react";
 import githubIcon from "@/assets/github.svg"
 import rekapJson from "@/data/rekap.json";
-import { Database, Play, Star, Trophy, Users } from "lucide-react";
-import axios from "axios";
 import { BACKEND_URL, TUTORIAL_YT } from "@/constants";
 
 interface RekapData {
@@ -25,6 +26,12 @@ interface RekapData {
 
 const AboutPage = () => {
   const selectedMatkulItems = useAuthStore((state) => state.selectedMatkulItems);
+  const { leaderboard, isConnected } = useLeaderboard(import.meta.env.VITE_WS_URL);
+
+  useEffect(() => {
+    console.log("leaderboard", leaderboard);
+    console.log("isConnected", isConnected);
+  }, [leaderboard, isConnected]);
 
   // Fallback aman pakai useMemo, bukan inline
   const safeSelectedItems = useMemo(
@@ -300,52 +307,57 @@ const AboutPage = () => {
                 <span className="text-xs font-bold animate-pulse text-center py-4">Memuat Peringkat...</span>
               ) : (
                 <div className="flex flex-col gap-1.5 max-h-70 overflow-y-auto pr-1 custom-scrollbar">
-                  {stats.top_10_users && stats.top_10_users.length > 0 ? (
-                    stats.top_10_users.map((user: { nim: string; total_tags: number }, index: number) => {
-                      const isSisfo = user.nim.startsWith("H11");
-                      const isSiskom = user.nim.startsWith("H10");
+                  {/* Menggunakan data dari 'leaderboard' WebSocket, jika belum ada pakai 'stats.top_10_users' */}
+                  {((leaderboard && leaderboard.length > 0) ? leaderboard : stats.top_10_users) &&
+                    ((leaderboard && leaderboard.length > 0) ? leaderboard : stats.top_10_users).length > 0 ? (
+                    ((leaderboard && leaderboard.length > 0) ? leaderboard : stats.top_10_users).map(
+                      (user: { nim: string; total_tags: number }, index: number) => {
+                        // H11 untuk Sistem Informasi, H10 untuk Sistem Komputer (UNTAN)
+                        const isSisfo = user.nim.startsWith("H11");
+                        const isSiskom = user.nim.startsWith("H10");
 
-                      return (
-                        <div
-                          key={user.nim + index}
-                          className="flex items-center justify-between p-1.5 border-2 border-black dark:border-neutral-700 bg-zinc-50 dark:bg-zinc-900/50 hover:bg-neo-yellow/10 dark:hover:bg-neo-yellow/5 transition-colors"
-                        >
-                          <div className="flex items-center gap-2">
-                            {/* Peringkat Angka */}
-                            <span className="w-5 text-center font-black text-xs text-neutral-400 dark:text-neutral-500">
-                              #{index + 1}
-                            </span>
+                        return (
+                          <div
+                            key={user.nim + index}
+                            className="flex items-center justify-between p-1.5 border-2 border-black dark:border-neutral-700 bg-zinc-50 dark:bg-zinc-900/50 hover:bg-neo-yellow/10 dark:hover:bg-neo-yellow/5 transition-colors"
+                          >
+                            <div className="flex items-center gap-2">
+                              {/* Peringkat Angka */}
+                              <span className="w-5 text-center font-black text-xs text-neutral-400 dark:text-neutral-500">
+                                #{index + 1}
+                              </span>
 
-                            {/* Badge Prodi */}
-                            {isSisfo && (
-                              <span className="px-1 text-[8px] font-black bg-blue-100 text-blue-800 border border-black dark:border-blue-900 dark:bg-blue-950/60 shrink-0">
-                                SISFO
-                              </span>
-                            )}
-                            {isSiskom && (
-                              <span className="px-1 text-[8px] font-black bg-green-100 text-green-800 border border-black dark:border-green-900 dark:bg-green-950/60 shrink-0">
-                                SISKOM
-                              </span>
-                            )}
-                            {!isSisfo && !isSiskom && (
-                              <span className="px-1 text-[8px] font-black bg-zinc-200 text-zinc-700 border border-black dark:border-neutral-700 dark:bg-zinc-800 shrink-0">
-                                ??
-                              </span>
-                            )}
+                              {/* Badge Prodi */}
+                              {isSisfo && (
+                                <span className="px-1 text-[8px] font-black bg-blue-100 text-blue-800 border border-black dark:border-blue-900 dark:bg-blue-950/60 shrink-0">
+                                  SISFO
+                                </span>
+                              )}
+                              {isSiskom && (
+                                <span className="px-1 text-[8px] font-black bg-green-100 text-green-800 border border-black dark:border-green-900 dark:bg-green-950/60 shrink-0">
+                                  SISKOM
+                                </span>
+                              )}
+                              {!isSisfo && !isSiskom && (
+                                <span className="px-1 text-[8px] font-black bg-zinc-200 text-zinc-700 border border-black dark:border-neutral-700 dark:bg-zinc-800 shrink-0">
+                                  ??
+                                </span>
+                              )}
 
-                            {/* NIM */}
-                            <span className="font-mono text-[11px] font-black tracking-wide text-black dark:text-white">
-                              {user.nim}
+                              {/* NIM */}
+                              <span className="font-mono text-[11px] font-black tracking-wide text-black dark:text-white">
+                                {user.nim}
+                              </span>
+                            </div>
+
+                            {/* Jumlah Tag */}
+                            <span className="font-space font-black text-xs px-2 py-0.5 bg-white dark:bg-zinc-800 border-2 border-black dark:border-neutral-600 shadow-[1px_1px_0px_0px_#000] dark:shadow-[1px_1px_0px_0px_rgba(255,255,255,0.1)]">
+                              {user.total_tags}
                             </span>
                           </div>
-
-                          {/* Jumlah Tag */}
-                          <span className="font-space font-black text-xs px-2 py-0.5 bg-white dark:bg-zinc-800 border-2 border-black dark:border-neutral-600 shadow-[1px_1px_0px_0px_#000] dark:shadow-[1px_1px_0px_0px_rgba(255,255,255,0.1)]">
-                            {user.total_tags}
-                          </span>
-                        </div>
-                      );
-                    })
+                        );
+                      }
+                    )
                   ) : (
                     <span className="text-xxs font-bold text-zinc-400 text-center py-4">Tidak ada data aktivitas</span>
                   )}

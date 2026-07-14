@@ -61,6 +61,14 @@ xcopy src\generated\prisma-pg dist-lambda\generated\prisma-pg /i /e /y
 ### -- masukkan SSH & node_modules/.prisma ke folder dist-lambda/ -- 
 if not exist "dist-lambda\cert" mkdir "dist-lambda\cert" && xcopy /y "cert\global-bundle.pem" "dist-lambda\cert\"
 ```
+```sh
+# 4. Zipping & UP ke Lambda
+### Zipping untuk upload (10MB -> 3.8MB)
+cd dist-lambda && powershell -NoProfile -Command "Compress-Archive -Path * -DestinationPath ../lambda-backend.zip -Force" && cd ..
+aws lambda update-function-code --function-name remaku-be --zip-file fileb://lambda-backend.zip
+
+aws lambda update-function-configuration --function-name remaku-be --environment "Variables={NODE_ENV=production}"
+```
 
 # -- Code (AWS Lambda)
 cd dist-lambda && powershell -NoProfile -Command "Compress-Archive -Path * -DestinationPath ../lambda-backend.zip -Force" && cd ..

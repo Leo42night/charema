@@ -18,7 +18,7 @@ export interface DbClient {
   };
   achievement: { // camelCase
     create: (args: { data: any }) => Promise<any>;
-    findMany: () => Promise<any[]>;
+    findMany: (args?: { select: any }) => Promise<any[]>;
     findUnique: (args: { where: any }) => Promise<any>;
     upsert: (args: {
       where: { user_key: number }; // Key unik untuk pencarian data

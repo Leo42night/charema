@@ -1,10 +1,11 @@
 import { Elysia, t } from "elysia";
 import { cookie } from "@elysiajs/cookie";
 import { jwt } from "@elysiajs/jwt";
-import type { ApiResponse, HealthCheck } from "shared";
+import { type ApiResponse, userToNim } from "shared";
 import user_cf_scores from "./data/user_cf_scores.json";
 import type { DbClient } from "./types";
 import { dataRoutes } from "./routes/data.route";
+import { broadcastLeaderboard } from "./ws/broadcast";
 
 const recommendations = user_cf_scores as Record<string, Record<string, number>>;
 
@@ -122,59 +123,57 @@ export const createApp = (getPrisma: () => DbClient) => {
         })
       })
     })
-    .post(
-      "/recom-target",
-      async ({ body, set }) => {
-        try {
-          // PERBAIKAN 1: Ambil 'matkul_ids' sesuai dengan nama di skema validasi
-          const { user_key, matkul_ids } = body;
+    .post("/recom-target", async ({ body, set }) => {
+      try {
+        // PERBAIKAN 1: Ambil 'matkul_ids' sesuai dengan nama di skema validasi
+        const { user_key, matkul_ids } = body;
 
-          // Cek jumlah data untuk user_key ini
-          const count = await getPrisma().recomTarget.count({
+        // Cek jumlah data untuk user_key ini
+        const count = await getPrisma().recomTarget.count({
+          where: { user_key },
+        });
+
+        let result;
+
+        if (count >= 3) {
+          // Sudah 3 atau lebih → update yang terbaru
+          const latest = await getPrisma().recomTarget.findFirst({
             where: { user_key },
+            orderBy: { created_at: 'desc' },
           });
 
-          let result;
+          result = await getPrisma().recomTarget.update({
+            where: { id: latest!.id },
+            data: { matkul_ids },
+          });
 
-          if (count >= 3) {
-            // Sudah 3 atau lebih → update yang terbaru
-            const latest = await getPrisma().recomTarget.findFirst({
-              where: { user_key },
-              orderBy: { created_at: 'desc' },
-            });
-
-            result = await getPrisma().recomTarget.update({
-              where: { id: latest!.id },
-              data: { matkul_ids },
-            });
-
-            return {
-              data: result,
-              message: "Recommendation updated",
-            };
-          } else {
-            // Belum 3 → buat baru
-            result = await getPrisma().recomTarget.create({
-              data: {
-                user_key,
-                matkul_ids,
-              },
-            });
-            return {
-              data: result,
-              message: "Recommendation created",
-            };
-          }
-
-        } catch (error: any) {
-          console.error("Prisma error:", error);
-          set.status = 500;
           return {
-            error: "Gagal menyimpan data ke database",
-            detail: error.message,
+            data: result,
+            message: "Recommendation updated",
+          };
+        } else {
+          // Belum 3 → buat baru
+          result = await getPrisma().recomTarget.create({
+            data: {
+              user_key,
+              matkul_ids,
+            },
+          });
+          return {
+            data: result,
+            message: "Recommendation created",
           };
         }
-      },
+
+      } catch (error: any) {
+        console.error("Prisma error:", error);
+        set.status = 500;
+        return {
+          error: "Gagal menyimpan data ke database",
+          detail: error.message,
+        };
+      }
+    },
       {
         body: t.Object({
           user_key: t.Numeric(),
@@ -184,31 +183,54 @@ export const createApp = (getPrisma: () => DbClient) => {
       }
     )
     // Save Progress achievement Tags
-    .post(
-      "/achievement",
-      async ({ body, set }) => {
+    .post("/achievement", async ({ body, set }) => {
+      try {
+        const { user_key, tags } = body;
+
+        await getPrisma().achievement.upsert({
+          where: { user_key },
+          // Data yang akan dimasukkan jika data BELUM ada
+          create: {
+            user_key, // Jangan lupa masukkan field unique penanda relasi
+            tags,
+          },
+          // Data yang akan diperbarui jika data SUDAH ada
+          update: {
+            tags // time update pakai created_at di score
+          },
+        });
+
+        // 🔥 broadcast ke semua client setelah sukses
+        let returnData: {
+          message: string;
+          broadcast: any;
+        } = {
+          message: "Score & Tags saved successfully",
+          broadcast: "Sukses"
+        };
+
         try {
-          const { user_key, tags } = body;
-
-          await getPrisma().achievement.upsert({
-            where: { user_key },
-            // Data yang akan dimasukkan jika data BELUM ada
-            create: {
-              user_key, // Jangan lupa masukkan field unique penanda relasi
-              tags,
-            },
-            // Data yang akan diperbarui jika data SUDAH ada
-            update: {
-              tags // time update pakai created_at di score
-            },
-          });
-
-          return { message: "Score & Tags saved successfully" };
-        } catch (error: any) {
-          set.status = 500;
-          return { error: "Failed to save score", detail: error.message };
+          await broadcastLeaderboard(getPrisma, userToNim);
+        } catch (err: any) {
+          const errorDetails = {
+            name: err?.name || "UnknownError",
+            message: err?.message || String(err),
+            meta: err?.meta, // Khusus Prisma (detail kolom/query yang salah)
+            stack: err?.stack // Stack trace untuk melacak baris kode yang error
+          };
+          returnData.broadcast = {
+            status: "Gagal",
+            error: errorDetails
+          };
+          console.error("Broadcast gagal, tapi data tetap tersimpan:", err);
         }
-      },
+
+        return returnData;
+      } catch (error: any) {
+        set.status = 500;
+        return { error: "Failed to save score", detail: error.message };
+      }
+    },
       {
         body: t.Object({
           user_key: t.Numeric({ error: "user_key harus berupa angka" }),
@@ -219,50 +241,48 @@ export const createApp = (getPrisma: () => DbClient) => {
         }),
       }
     )
-    .post(
-      "/feedback",
-      async ({ body, set }) => {
-        try {
-          const { user_key, email, input, res_tag, res_message, feedback } = body;
+    .post("/feedback", async ({ body, set }) => {
+      try {
+        const { user_key, email, input, res_tag, res_message, feedback } = body;
 
-          // 1. Validasi Kondisional: Jika user_key kosong, EMAIL WAJIB ADA
-          if (!user_key && !email) {
-            set.status = 400; // Bad Request, bukan 500
-            return { error: "Gagal validasi", detail: "Email wajib diisi jika user_key tidak tersedia." };
-          }
-
-          // 2. Buat where clause berdasarkan user_key atau email
-          const whereClause = user_key
-            ? { user_key }
-            : { email: email! };
-
-          // 3. Cek jumlah feedback
-          let count = await getPrisma().feedback.count({ where: whereClause });
-
-          if (count >= 4) {
-            // Update yang terlama
-            const oldest = await getPrisma().feedback.findFirst({
-              where: whereClause,
-              orderBy: { created_at: 'asc' },
-            });
-
-            await getPrisma().feedback.update({
-              where: { id: oldest!.id },
-              data: { input, res_tag, res_message, feedback },
-            });
-          } else {
-            // Buat baru
-            await getPrisma().feedback.create({
-              data: { user_key, email, input, res_tag, res_message, feedback },
-            });
-            count = count + 1;
-          }
-          return { count, message: "Feedback submitted" };
-        } catch (error: any) {
-          set.status = 500;
-          return { error: "Failed to submit feedback", detail: error.message };
+        // 1. Validasi Kondisional: Jika user_key kosong, EMAIL WAJIB ADA
+        if (!user_key && !email) {
+          set.status = 400; // Bad Request, bukan 500
+          return { error: "Gagal validasi", detail: "Email wajib diisi jika user_key tidak tersedia." };
         }
-      },
+
+        // 2. Buat where clause berdasarkan user_key atau email
+        const whereClause = user_key
+          ? { user_key }
+          : { email: email! };
+
+        // 3. Cek jumlah feedback
+        let count = await getPrisma().feedback.count({ where: whereClause });
+
+        if (count >= 4) {
+          // Update yang terlama
+          const oldest = await getPrisma().feedback.findFirst({
+            where: whereClause,
+            orderBy: { created_at: 'asc' },
+          });
+
+          await getPrisma().feedback.update({
+            where: { id: oldest!.id },
+            data: { input, res_tag, res_message, feedback },
+          });
+        } else {
+          // Buat baru
+          await getPrisma().feedback.create({
+            data: { user_key, email, input, res_tag, res_message, feedback },
+          });
+          count = count + 1;
+        }
+        return { count, message: "Feedback submitted" };
+      } catch (error: any) {
+        set.status = 500;
+        return { error: "Failed to submit feedback", detail: error.message };
+      }
+    },
       {
         body: t.Object({
           user_key: t.Optional(t.Integer({ error: "user_key harus berupa angka bulat" })),
@@ -275,40 +295,38 @@ export const createApp = (getPrisma: () => DbClient) => {
       }
     )
     // Save Score (rating)
-    .post(
-      "/score",
-      async ({ body, set }) => {
-        try {
-          const { user_key, score_cf, score_chat, message } = body;
+    .post("/score", async ({ body, set }) => {
+      try {
+        const { user_key, score_cf, score_chat, message } = body;
 
-          // Menggunakan upsert agar jika user_key sudah ada, data akan diupdate (karena @id)
-          const savedScore = await getPrisma().score.upsert({
-            // 1. Kunci pencarian data berdasarkan primary key unik (user_key)
-            where: {
-              user_key,
-            },
-            // 2. Jika user_key SUDAH ADA, perbarui nilai skornya
-            update: {
-              score_cf,
-              score_chat,
-              ...(message !== undefined && { message }),
-              created_at: new Date() // key update untuk achievement juga
-            },
-            // 3. Jika user_key BELUM ADA, buat baris data baru
-            create: {
-              user_key,
-              score_cf,
-              score_chat,
-              ...(message !== undefined && { message }),
-            },
-          });
+        // Menggunakan upsert agar jika user_key sudah ada, data akan diupdate (karena @id)
+        const savedScore = await getPrisma().score.upsert({
+          // 1. Kunci pencarian data berdasarkan primary key unik (user_key)
+          where: {
+            user_key,
+          },
+          // 2. Jika user_key SUDAH ADA, perbarui nilai skornya
+          update: {
+            score_cf,
+            score_chat,
+            ...(message !== undefined && { message }),
+            created_at: new Date() // key update untuk achievement juga
+          },
+          // 3. Jika user_key BELUM ADA, buat baris data baru
+          create: {
+            user_key,
+            score_cf,
+            score_chat,
+            ...(message !== undefined && { message }),
+          },
+        });
 
-          return { data: savedScore, message: "Score & Tags saved successfully" };
-        } catch (error: any) {
-          set.status = 500;
-          return { error: "Failed to save score", detail: error.message };
-        }
-      },
+        return { data: savedScore, message: "Score & Tags saved successfully" };
+      } catch (error: any) {
+        set.status = 500;
+        return { error: "Failed to save score", detail: error.message };
+      }
+    },
       {
         body: t.Object({
           user_key: t.Numeric({ error: "user_key harus berupa angka" }),

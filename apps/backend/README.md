@@ -1,5 +1,17 @@
 # Tugas Akhir - Backend
 
+## Websocket
+Untuk Leaderboard auto update.
+```sh
+# Websocket Broadcast Leaderboard
+bun add @aws-sdk/client-dynamodb @aws-sdk/client-apigatewaymanagementapi
+bun add -D @types/aws-lambda
+
+# Deploy (serverless.yml)
+bun --env-file=.env.production sls deploy --stage dev
+bunx serverless deploy --stage dev
+bunx dotenv -e .env.production -- npx serverless deploy --stage dev
+```
 ## Setup Data & Database
 1. Data JSON yang perlu disiapkan Google Collab NCF Rekomendasi (lihat `README.md` utama). gunakan template `user_cf_scores-dummy.json` untuk testing.
 2. Database: setup Awal agar jalan di local
