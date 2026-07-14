@@ -7,6 +7,7 @@ const SSM_PARAMS = [
   "/remaku/JWT_SECRET",
   "/remaku/API_KEY",
   "/remaku/FRONTEND_URL",
+  "/remaku/WS_MANAGEMENT_ENDPOINT",
 ];
 
 let isLoaded = false;

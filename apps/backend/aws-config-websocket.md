@@ -102,6 +102,26 @@ Lambda **Elysia (HTTP)** kamu yang manggil `broadcastLeaderboard()` butuh izin `
 
 3. Simpan dengan nama misal `AllowWsBroadcast`
 
+4. BE Lambda Function Anda yang memiliki role `remaku-be-role-436m8eol` perlu diberikan izin (IAM Policy) untuk membaca dan menghapus data dari tabel DynamoDB ws-connections.
+    - IAM -> role `remaku-be-role-436m8eol` -> tab `Permissions` -> klik tombol Add permissions -> Create inline policy (beri nama `DynamoDBWebSocketAccess`)
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:Scan",
+        "dynamodb:DeleteItem"
+      ],
+      "Resource": "arn:aws:dynamodb:us-east-1:677276114550:table/ws-connections"
+    }
+  ]
+}
+
+```
+
+
 ## Bagian 5: Set environment variable di Lambda Elysia
 
 Di Lambda Elysia kamu (**Configuration → Environment variables**), tambahkan:
