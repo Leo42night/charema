@@ -1,7 +1,7 @@
 // src/components/chatbot/Achievement.tsx
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { AlertCircle, Trophy, Star, Zap, Flame } from "lucide-react";
+import { AlertCircle, Trophy, Star, Zap, Flame, Save, Loader } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -10,21 +10,33 @@ import {
 } from "@/components/ui/tooltip"; // Sesuaikan path instalasi shadcn Anda
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useChatStore } from "@/stores/useChatStore";
+import axios from "axios";
+import { BACKEND_URL } from "@/constants";
+import { elysiaErr } from "@/lib/elysiaErr";
+import { toast } from "sonner";
 
 const TOTAL_TAGS = 8;
+const isMobile = () => window.innerWidth < 640;
 
 interface AchievementProps {
   isDesktop: boolean;
-  setModalScore: (modalScore: boolean) => void;
   isOnline: boolean;
 }
 
-const Achievement: React.FC<AchievementProps> = ({ isDesktop, setModalScore, isOnline }) => {
+const Achievement: React.FC<AchievementProps> = ({ isDesktop, isOnline }) => {
   const user = useAuthStore((s) => s.user);
+  const token = useAuthStore((state) => state.token);
   const feedbackNumber = useAuthStore((state) => state.feedbackNumber);
   const tags = useChatStore((s) => s.tags);
   const canSave = useChatStore((s) => s.canSave);
+  const dismissSave = useChatStore((s) => s.dismissSave);
   const [percentageAchieved, setPercentageAchieved] = useState<number>(0);
+  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  const tooltipText = "Selesaikan achievement untuk mendapatkan hadiah 100K";
+  const triggerClassName =
+    "cursor-help text-black dark:text-neo-yellow hover:scale-110 active:scale-95 transition-transform p-0.5 rounded focus:outline-none";
 
   // update progress tags
   useEffect(() => {
@@ -35,62 +47,86 @@ const Achievement: React.FC<AchievementProps> = ({ isDesktop, setModalScore, isO
     setPercentageAchieved(newPercentage);
   }, [tags]);
 
+  const saveUpdateTag = async () => {
+    setLoading(true);
+    try {
+      await axios.post(`${BACKEND_URL}/achievement`,
+        { user_key: user?.user_key, tags }, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }); // Sesuaikan endpoint backend Anda
+      dismissSave();
+      toast.success("Unlocked Tags is saved!.");
+    } catch (error) {
+      elysiaErr(error);
+      console.error("Gagal mengambil data statistik:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className={`${isDesktop && `neo-box`} p-3 dark:border-neo-yellow bg-white dark:bg-zinc-900`}>
       {/* Header */}
-      <div className="text-[10px] font-bold uppercase tracking-widest border-b-2 border-black dark:border-neo-yellow pb-2 mb-3 flex items-center justify-between">
+      <div className="text-xxs font-bold uppercase tracking-widest border-b-2 border-black dark:border-neo-yellow pb-2 mb-3 flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <Trophy className="w-3 h-3" />
         // Achievement
         </div>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger
-              className="cursor-help text-black dark:text-neo-yellow hover:scale-110 active:scale-95 transition-transform p-0.5 rounded focus:outline-none"
+
+        {/* Tooltip: Mobile (press) & Desktop (hover)  */}
+        {isMobile() ?
+          <div className="relative">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpen((prev) => !prev);
+              }}
+              className={triggerClassName}
               aria-label="Informasi Achievement"
             >
               <AlertCircle className="w-3.5 h-3.5 stroke-[2.5]" />
-            </TooltipTrigger>
+            </button>
 
-            {/* Konten Tooltip Bergaya Neo-Brutalisme */}
-            <TooltipContent
-              side="top"
-              align="end"
-              className="bg-black text-white text-[9px] font-mono font-black uppercase tracking-tight p-2 rounded-none border-2 border-black dark:border-neo-yellow shadow-[3px_3px_0_0_#000] dark:shadow-[3px_3px_0_0_oklch(89.5%_0.23_95)] animate-in fade-in-0 zoom-in-95 data-[side=top]:slide-in-from-bottom-1 max-w-45 text-center"
+            <div
+              className={`absolute right-0 top-full mt-1.5 z-50 p-2 border-2 border-black dark:border-neo-yellow bg-black text-white font-mono font-black uppercase tracking-tight text-center rounded-none shadow-[3px_3px_0_0_#000] dark:shadow-[3px_3px_0_0_oklch(89.5%_0.23_95)]
+                    ${open ? "flex flex-col" : "hidden"}`}
             >
-              Selesaikan achievement untuk mendapatkan hadiah 100K
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+              {tooltipText}
+            </div>
+          </div> :
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger
+                className="cursor-help text-black dark:text-neo-yellow hover:scale-110 active:scale-95 transition-transform p-0.5 rounded focus:outline-none"
+                aria-label="Informasi Achievement"
+              >
+                <AlertCircle className="w-3.5 h-3.5 stroke-[2.5]" />
+              </TooltipTrigger>
+
+              {/* Konten Tooltip Bergaya Neo-Brutalisme */}
+              <TooltipContent
+                side="top"
+                align="end"
+                className="bg-black text-white font-mono font-black uppercase tracking-tight p-2 rounded-none border-2 border-black dark:border-neo-yellow shadow-[3px_3px_0_0_#000] dark:shadow-[3px_3px_0_0_oklch(89.5%_0.23_95)] animate-in fade-in-0 zoom-in-95 data-[side=top]:slide-in-from-bottom-1 max-w-45 text-center"
+              >
+                Selesaikan achievement untuk mendapatkan hadiah 100K
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>}
+
       </div>
 
-      {/* Tombol Save Progress Neo-Brutalist */}
-      {user && canSave && (
-        <button
-          onClick={() => setModalScore(true)}
-          disabled={!isOnline}
-          className={`mb-3 w-full font-mono text-[11px] font-black uppercase tracking-tight py-2 px-3 border-2 border-black transition-all
-                ${!isOnline
-              ? "bg-gray-400 text-gray-700 cursor-not-allowed shadow-none translate-x-px translate-y-px"
-              : "bg-neo-green text-black shadow-[2px_2px_0_0_#000] hover:bg-opacity-90 active:shadow-none active:translate-x-0.5 active:translate-y-0.5"
-            }`}
-        >
-          <div className="flex items-center justify-center gap-1.5">
-            {/* Indikator Status Dot */}
-            <span>
-              {!isOnline ? "SYS_OFFLINE" : "SAVE_PROGRESS"}
-            </span>
-          </div>
-        </button>
-      )}
-
-      {/* Score */}
+      {/* Kritik Feedback */}
       <div className="mb-3">
         <div className="flex justify-between items-center mb-1">
-          <span className="text-[9px] font-bold uppercase tracking-widest opacity-60">
+          <span className="text-xxs font-bold uppercase tracking-widest opacity-60">
             kritik
           </span>
-          <span className="text-[10px] font-black tabular-nums">
+          <span className="text-xxs font-black tabular-nums">
             {Math.min(feedbackNumber, 4)} / 4
           </span>
         </div>
@@ -106,26 +142,39 @@ const Achievement: React.FC<AchievementProps> = ({ isDesktop, setModalScore, isO
         </div>
       </div>
 
-
-
       {/* Unlock bar */}
-      <div className="mb-3">
-        <div className="flex justify-between items-center mb-1">
-          <span className="text-[9px] font-bold uppercase tracking-widest opacity-60">
-            Unlock Tags
-          </span>
-          <span className="text-[10px] font-black tabular-nums">
-            {percentageAchieved}%
-          </span>
+      <div className="mb-3 flex items-center gap-2">
+        <div className="w-full flex flex-col">
+          <div className="flex justify-between items-center mb-1">
+            <span className="text-xxs font-bold uppercase tracking-widest opacity-60">
+              Unlock Tags
+            </span>
+            <span className="text-xxs font-black tabular-nums">
+              {tags.length} / {TOTAL_TAGS}
+            </span>
+          </div>
+          <div className="h-3 border-2 border-black dark:border-neo-yellow bg-neo-bg dark:bg-zinc-950 overflow-hidden">
+            <motion.div
+              className="h-full bg-neo-yellow dark:bg-neo-yellow"
+              initial={{ width: 0 }}
+              animate={{ width: `${percentageAchieved}%` }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+            />
+          </div>
         </div>
-        <div className="h-3 border-2 border-black dark:border-neo-yellow bg-neo-bg dark:bg-zinc-950 overflow-hidden">
-          <motion.div
-            className="h-full bg-neo-yellow dark:bg-neo-yellow"
-            initial={{ width: 0 }}
-            animate={{ width: `${percentageAchieved}%` }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-          />
-        </div>
+        {user?.user_key && canSave && (
+          <button
+            disabled={loading}
+            onClick={saveUpdateTag}
+            className={`
+                ${!isOnline
+                ? "hidden"
+                : "bg-neo-blue text-white py-2 px-2 neo-btn shadow-neo-sm"
+              }`}>
+            {loading ? <Loader /> :
+              <Save className="w-4 h-4 stroke-[2.5]" />}
+          </button>
+        )}
       </div>
 
       {/* Tags */}
@@ -149,8 +198,8 @@ const Achievement: React.FC<AchievementProps> = ({ isDesktop, setModalScore, isO
                   transition={{ delay: idx * 0.04, duration: 0.2 }}
                   className={`flex items-center gap-2 px-2 py-1 border-2 border-black 
                 ${isRekomendasi
-                      ? "bg-neo-red text-neo-white-neutral dark:border-neo-red dark:bg-neo-red shadow-[2px_2px_0_0_#000] dark:shadow-[2px_2px_0_0_#65%_0.25_25]"
-                      : "bg-neo-yellow dark:bg-zinc-800 dark:border-neo-yellow shadow-[2px_2px_0_0_#000] dark:shadow-[2px_2px_0_0_#facc15]"
+                      ? "bg-neo-red text-neo-white-neutral dark:border-neo-red dark:bg-neo-red shadow-neo-yellow dark:shadow-[2px_2px_0_0_#65%_0.25_25]"
+                      : "bg-neo-yellow dark:bg-zinc-800 dark:border-neo-yellow shadow-neo-yellow dark:shadow-[2px_2px_0_0_#facc15]"
                     }`}
                 >
                   {/* Ikon berubah jadi Flame jika rekomendasi, warna ikon menyesuaikan */}
@@ -160,7 +209,7 @@ const Achievement: React.FC<AchievementProps> = ({ isDesktop, setModalScore, isO
                     <Star className="w-3 h-3 shrink-0 fill-black dark:fill-neo-yellow" />
                   )}
 
-                  <span className="text-[10px] font-black uppercase tracking-tight truncate">
+                  <span className="text-xxs font-black uppercase tracking-tight truncate">
                     {tag}
                   </span>
                 </motion.div>
@@ -173,7 +222,7 @@ const Achievement: React.FC<AchievementProps> = ({ isDesktop, setModalScore, isO
               className="flex flex-col items-center gap-1 py-3 border-2 border-dashed border-black/30 dark:border-neo-yellow/30"
             >
               <Zap className="w-4 h-4 opacity-30" />
-              <p className="text-[9px] uppercase tracking-widest opacity-40 text-center leading-relaxed">
+              <p className="text-xxs uppercase tracking-widest opacity-40 text-center leading-relaxed">
                 Mulai chat<br />untuk unlock
               </p>
             </motion.div>

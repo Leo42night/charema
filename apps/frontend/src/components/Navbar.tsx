@@ -9,18 +9,61 @@ import { useUIStore } from "@/stores/useUIStore";
 import { useChatPresenter } from "@/hooks/useChatPresenter";
 import useOnlineStatus from "@/hooks/useOnlineStatus";
 import { RatingModal } from "./chatbot/RatingModal";
-import { STORAGE_VERSION } from "@/constants";
+import SidebarBtn from "./SidebarBtn";
 
 const NAV_ITEMS = [
   { label: "Chatbot", href: "/" },
   { label: "About", href: "/about" }
 ];
 
+const NavPages = ({ className, isMobile }: { className: string, isMobile?: boolean }) =>
+  // <ul className="hidden sm:flex items-center gap-2" >
+  <ul className={`${className} items-center gap-2`} >
+    {
+      NAV_ITEMS.map((item) => (
+        <li key={item.label} id={isMobile && item.label === "About" ? "nav-about-mobile" : "nav-about"}>
+          <NavLink
+            to={item.href}
+            className={({ isActive }) =>
+              `block neo-btn px-3 py-1 text-[11px] font-bold uppercase border-2.5 border-black transition-all shadow-neo-sm hover:bg-neo-red dark:border-neo-yellow dark:shadow-neo-yellow
+                    ${isActive
+                ? "bg-black text-neo-yellow dark:bg-neo-yellow dark:text-black"
+                : "bg-white text-black dark:bg-zinc-900 dark:text-white"
+              }`
+            }
+          >
+            {item.label}
+          </NavLink>
+        </li>
+      ))
+    }
+  </ul >
+
+const Hamburger = ({ setMenuOpen, className }: { setMenuOpen: (open: boolean) => void; className?: string }) => {
+
+
+  return (
+    <button
+      className={`${className}
+          neo-btn flex flex-col gap-1 bg-white dark:bg-transparent p-1.5 shadow-neo-sm sm:hidden`}
+      onClick={() => setMenuOpen(true)}
+      aria-label="Menu"
+    >
+      <span className="block h-0.5 w-5 bg-black dark:bg-neo-yellow" />
+      <span className="block h-0.5 w-5 bg-black dark:bg-neo-yellow" />
+      <span className="block h-0.5 w-5 bg-black dark:bg-neo-yellow" />
+    </button>
+  )
+}
+
+function getImageAvatar(name: string) {
+  return "https://ui-avatars.com/api/?name=" + encodeURIComponent(name) + "&background=FFEE00&color=000000&size=128";
+}
+
 export default function Navbar() {
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
-  const msgCount = useUIStore((s) => s.msgCount);
-  const resetChat = useUIStore((s) => s.resetChat);
+
   const modalScore = useUIStore((s) => s.modalScore);
   const setModalScore = useUIStore((s) => s.setModalScore);
   const menuOpen = useUIStore((s) => s.menuOpen);
@@ -28,31 +71,28 @@ export default function Navbar() {
 
   const chatPresenter = useChatPresenter();
   const isOnline = useOnlineStatus();
-  const { isNavbarVisible } = useUI();
+  const { isNavbarVisible, setNavbarVisible } = useUI();
   const { login, isLoading } = useGoogleAuth();
 
   // State Hooks
   const [isDark, setIsDark] = useState(false);
   const [avatarOpen, setAvatarOpen] = useState(false);
+  const [idle, setIdle] = useState(false);
 
   // Ref Hooks
   const avatarContainerRef = useRef<HTMLDivElement>(null);
   const navbarRef = useRef<HTMLElement>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
 
   // Image Handler State (Gunakan fungsi inisialisasi agar fallback tidak di-encode ulang tiap render)
   const [imgSrc, setImgSrc] = useState(() => {
-    const fallback = "https://ui-avatars.com/api/?name=" + encodeURIComponent(user?.name || "") + "&background=FFEE00&color=000000&size=128";
-    return user?.picture || fallback;
+    return user?.picture || getImageAvatar(user?.name || "");
   });
-
-  // ==========================================
-  // 2. EFECT HOOKS (SELESAIKAN STATE DI ATAS DULU)
-  // ==========================================
 
   // Efek untuk sinkronisasi gambar avatar saat user berubah
   useEffect(() => {
-    const fallback = "https://ui-avatars.com/api/?name=" + encodeURIComponent(user?.name || "") + "&background=FFEE00&color=000000&size=128";
-    setImgSrc(user?.picture || fallback);
+    setImgSrc(user?.picture || getImageAvatar(user?.name || ""));
   }, [user?.picture, user?.name]);
 
   // Sinkronisasi tema dengan class .dark di <html>
@@ -82,8 +122,34 @@ export default function Navbar() {
     };
   }, [avatarOpen]);
 
+  // efek hamburger untuk versi Focus Mode
+  useEffect(() => {
+    const resetTimer = () => {
+      setIdle(false);
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => setIdle(true), 1000);
+    };
+
+    resetTimer(); // mulai timer pertama kali
+
+    window.addEventListener("touchstart", resetTimer);
+    window.addEventListener("pointerdown", resetTimer);
+
+    return () => {
+      window.removeEventListener("touchstart", resetTimer);
+      window.removeEventListener("pointerdown", resetTimer);
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
+
   return (
     <>
+      {/* Mobile Hamburger (Focus Mode) */}
+      <Hamburger className={!isNavbarVisible ? `fixed z-10 mt-2 ml-4 w-min
+        transition-transform duration-300 ${idle ? "-translate-x-10" : "translate-x-0"}`
+        : 'hidden'}
+        setMenuOpen={setMenuOpen} />
+
       <header
         ref={navbarRef}
         className={`
@@ -96,15 +162,8 @@ export default function Navbar() {
 
         <div className="flex items-center gap-4">
           {/* Mobile Hamburger */}
-          <button
-            className="neo-btn flex flex-col gap-1 bg-white dark:bg-transparent p-1.5 shadow-neo-sm sm:hidden"
-            onClick={() => setMenuOpen(true)}
-            aria-label="Menu"
-          >
-            <span className="block h-0.5 w-5 bg-black dark:bg-neo-yellow" />
-            <span className="block h-0.5 w-5 bg-black dark:bg-neo-yellow" />
-            <span className="block h-0.5 w-5 bg-black dark:bg-neo-yellow" />
-          </button>
+          <Hamburger setMenuOpen={setMenuOpen} />
+
 
           {/* Logo */}
           <div className="shrink-0 border-neo border-black bg-black px-2.5 py-1 text-sm font-bold tracking-tighter text-neo-yellow dark:border-neo-yellow sm:text-base">
@@ -112,24 +171,7 @@ export default function Navbar() {
           </div>
 
           {/* Desktop Links */}
-          <ul className="hidden sm:flex items-center gap-2">
-            {NAV_ITEMS.map((item) => (
-              <li key={item.label} id={item.label === "About" ? "nav-about" : ""}>
-                <NavLink
-                  to={item.href}
-                  className={({ isActive }) =>
-                    `block px-3 py-1 text-[11px] font-bold uppercase border-2.5 border-black transition-all shadow-neo-sm hover:bg-neo-red dark:border-neo-yellow dark:shadow-[2px_2px_0_0_#FFEE00]
-                    ${isActive
-                      ? "bg-black text-neo-yellow dark:bg-neo-yellow dark:text-black"
-                      : "bg-white text-black dark:bg-zinc-900 dark:text-white"
-                    }`
-                  }
-                >
-                  {item.label}
-                </NavLink>
-              </li>
-            ))}
-          </ul>
+          <NavPages className="hidden sm:flex" />
         </div>
 
         <div className="flex items-center gap-3">
@@ -168,7 +210,7 @@ export default function Navbar() {
                   <span className="hidden sm:block max-w-20 overflow-hidden text-ellipsis whitespace-nowrap text-[11px]">
                     {user.name.split(" ")[0]}
                   </span>
-                  <span className="text-[10px]">▾</span>
+                  <span className="text-xxs">▾</span>
                 </button>
 
                 {/* Dropdown Profile */}
@@ -176,7 +218,7 @@ export default function Navbar() {
                   <div className="absolute right-0 top-[calc(100%+10px)] z-400 min-w-45 border-neo border-black bg-white dark:shadow-neo-yellow shadow-neo animate-in fade-in zoom-in-95 duration-100">
                     <div className="border-b-2 border-black bg-muted/20 p-3 dark:bg-zinc-900">
                       <div className="text-xs font-bold">{user.name}</div>
-                      <div className="mt-0.5 text-[10px] text-muted-foreground">{user.email}</div>
+                      <div className="mt-0.5 text-xxs text-muted-foreground">{user.email}</div>
                     </div>
                     <button
                       className="w-full bg-transparent px-3 py-2.5 text-left text-[11px] font-bold uppercase transition-colors hover:bg-neo-yellow dark:bg-neo-red"
@@ -192,7 +234,7 @@ export default function Navbar() {
               </div>
             ) : (
               <button
-                className={`neo-btn flex items-center md:gap-2 bg-white px-2 py-1.5 text-[10px] shadow-neo-sm sm:px-3 dark:bg-zinc-900 dark:border-neo-yellow dark:text-white transition-all
+                className={`neo-btn flex items-center md:gap-2 bg-white px-2 py-1.5 text-xxs shadow-neo-sm sm:px-3 dark:bg-zinc-900 dark:border-neo-yellow dark:text-white transition-all
                   ${isLoading
                     ? "opacity-60 cursor-not-allowed shadow-none translate-x-0.5 translate-y-0.5"
                     : "hover:bg-neo-red"
@@ -221,7 +263,7 @@ export default function Navbar() {
 
       {/* ---------------------- */}
 
-      {/* Mobile Drawer Overlay: close jika diluar */}
+      {/* Mobile Drawer Bg Blur */}
       <div
         className={`fixed inset-0 z-300 bg-black/50 backdrop-blur-sm transition-opacity ${menuOpen ? "opacity-100" : "pointer-events-none opacity-0"
           }`}
@@ -229,11 +271,11 @@ export default function Navbar() {
       />
 
       {/* Mobile Drawer Content */}
-      <aside
-        className={`fixed top-0 left-0 z-400 h-dvh w-[75vw] max-w-70 border-r-4 border-black bg-white dark:bg-zinc-900 shadow-[8px_0_0_0_#000] transition-transform duration-200 ease-in-out font-space
+      <div id="mobile-drawer"
+        className={`fixed top-0 left-0 z-400 h-dvh w-[75vw] max-w-70 overflow-y-auto overscroll-contain border-r-4 border-black bg-white dark:bg-zinc-900 shadow-[8px_0_0_0_#000] transition-transform duration-200 ease-in-out font-space
         ${menuOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
-        <div className="flex items-center justify-between border-b-4 border-neo-yellow bg-black p-4 text-neo-yellow">
+        <div className="flex items-center justify-between border-b-4 border-neo-yellow bg-black px-3 py-2 text-neo-yellow">
           <span className="font-bold tracking-tighter">ChaReMa</span>
           <button
             className="flex h-7 w-7 items-center justify-center border-2 border-neo-yellow text-neo-yellow hover:bg-neo-yellow hover:text-black"
@@ -244,72 +286,19 @@ export default function Navbar() {
         </div>
 
         {/* 1. Navigasi */}
-        <ul className="flex flex-col gap-2 p-3">
-          {NAV_ITEMS.map((item) => (
-            <li key={item.label}>
-              <NavLink
-                id={item.label === 'About' ? `drawer-nav-about` : ''}
-                to={item.href}
-                onClick={() => setMenuOpen(false)}
-                className={({ isActive }) =>
-                  `block neo-btn px-4 py-3 text-xs border-2.5 border-black transition-all shadow-neo-sm hover:bg-neo-red dark:border-neo-yellow dark:shadow-[2px_2px_0_0_#FFEE00]
-                    ${isActive
-                    ? "bg-black text-neo-yellow dark:bg-neo-yellow dark:text-black"
-                    : "bg-white text-black dark:bg-zinc-900 dark:text-white"
-                  }`
-                }
-              >
-                {item.label}
-              </NavLink>
-            </li>
-          ))}
-        </ul>
+        <NavPages className="flex p-3" isMobile={true} />
 
+        {/* Action Buttons */}
+        <SidebarBtn isNavbarVisible={isNavbarVisible}
+          setNavbarVisible={setNavbarVisible}
+          chatPresenter={chatPresenter}
+          isOnline={isOnline}
+          setModalScore={setModalScore} />
 
-        {/* 2. Elemen Kotak Pesan & Mode Kontrol dari Sidebar */}
-        <div className="p-3 dark:border-neo-yellow bg-white dark:bg-zinc-900">
-          <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest border-b-2 border-black dark:border-neo-yellow pb-2 mb-3">
-            <span>{`${msgCount} Pesan`}</span>
-            <span className="bg-neo-yellow text-black px-1.5 py-0.5 rounded-none font-bold">
-              {STORAGE_VERSION}
-            </span>
-          </div>
-          <button
-            onClick={() => {
-              resetChat(chatPresenter);
-              setMenuOpen(false); // Tutup drawer setelah reset
-            }}
-            className="neo-btn w-full py-2 mb-2 bg-neo-yellow text-[10px] text-black shadow-neo-sm"
-          >
-            Reset Chat
-          </button>
-        </div>
-
-        {/* 3. Elemen Status Online/Offline */}
-        <div className="flex flex-col gap-2 p-2 bg-neo-white-neutral">
-          <div className="flex justify-between items-center bg-black text-white px-2 py-1 font-mono text-[10px] font-black uppercase tracking-wider">
-            {isOnline ? (
-              <>
-                <div className="w-2 h-2 bg-neo-green border-2 border-black rounded-full animate-pulse" />
-                Online
-              </>
-            ) : (
-              <>
-                <div className="w-2 h-2 bg-neo-red border-2 border-black rounded-full" />
-                Offline
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* 4. Komponen Fitur Tambahan */}
+        {/* 4. Achievement (dibungkus draver agar auto di tinggikan di mobile) */}
         <div id="drawer-achievement">
           <Achievement
             isDesktop={false}
-            setModalScore={(val) => {
-              setModalScore(val);
-              setMenuOpen(false); // Tutup drawer jika modal rating terbuka
-            }}
             isOnline={isOnline}
           />
         </div>
@@ -324,11 +313,11 @@ export default function Navbar() {
               }}
               className="neo-btn flex w-full items-center justify-center gap-2 bg-neo-yellow py-3 text-xs shadow-neo-sm"
             >
-              <GoogleIcon /> LOGIN GOOGLEs
+              <GoogleIcon /> LOGIN GOOGLE
             </button>
           </div>
         )}
-      </aside >
+      </div >
 
       {/* Modal Popup */}
       <RatingModal isOpen={modalScore} onClose={() => setModalScore(false)} onSuccess={() => setModalScore(false)} />

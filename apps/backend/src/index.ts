@@ -183,31 +183,12 @@ export const createApp = (getPrisma: () => DbClient) => {
         })
       }
     )
+    // Save Progress achievement Tags
     .post(
-      "/progress",
+      "/achievement",
       async ({ body, set }) => {
         try {
-          const { user_key, score_cf, score_chat, tags } = body;
-
-          // Menggunakan upsert agar jika user_key sudah ada, data akan diupdate (karena @id)
-          const savedScore = await getPrisma().score.upsert({
-            // 1. Kunci pencarian data berdasarkan primary key unik (user_key)
-            where: {
-              user_key,
-            },
-            // 2. Jika user_key SUDAH ADA, perbarui nilai skornya
-            update: {
-              score_cf,
-              score_chat,
-              created_at: new Date() // key update untuk achievement juga
-            },
-            // 3. Jika user_key BELUM ADA, buat baris data baru
-            create: {
-              user_key,
-              score_cf,
-              score_chat,
-            },
-          });
+          const { user_key, tags } = body;
 
           await getPrisma().achievement.upsert({
             where: { user_key },
@@ -222,7 +203,7 @@ export const createApp = (getPrisma: () => DbClient) => {
             },
           });
 
-          return { data: savedScore, message: "Score & Tags saved successfully" };
+          return { message: "Score & Tags saved successfully" };
         } catch (error: any) {
           set.status = 500;
           return { error: "Failed to save score", detail: error.message };
@@ -231,8 +212,6 @@ export const createApp = (getPrisma: () => DbClient) => {
       {
         body: t.Object({
           user_key: t.Numeric({ error: "user_key harus berupa angka" }),
-          score_cf: t.Numeric({ error: "score_cf harus berupa angka (1-5)" }),
-          score_chat: t.Numeric({ error: "score_chat harus berupa angka (1-5)" }),
           tags: t.Array(
             t.String(),
             { error: "tags harus berupa array teks" }
@@ -292,6 +271,50 @@ export const createApp = (getPrisma: () => DbClient) => {
           res_tag: t.String(),
           res_message: t.String(),
           feedback: t.String(),
+        }),
+      }
+    )
+    // Save Score (rating)
+    .post(
+      "/score",
+      async ({ body, set }) => {
+        try {
+          const { user_key, score_cf, score_chat, message } = body;
+
+          // Menggunakan upsert agar jika user_key sudah ada, data akan diupdate (karena @id)
+          const savedScore = await getPrisma().score.upsert({
+            // 1. Kunci pencarian data berdasarkan primary key unik (user_key)
+            where: {
+              user_key,
+            },
+            // 2. Jika user_key SUDAH ADA, perbarui nilai skornya
+            update: {
+              score_cf,
+              score_chat,
+              ...(message !== undefined && { message }),
+              created_at: new Date() // key update untuk achievement juga
+            },
+            // 3. Jika user_key BELUM ADA, buat baris data baru
+            create: {
+              user_key,
+              score_cf,
+              score_chat,
+              ...(message !== undefined && { message }),
+            },
+          });
+
+          return { data: savedScore, message: "Score & Tags saved successfully" };
+        } catch (error: any) {
+          set.status = 500;
+          return { error: "Failed to save score", detail: error.message };
+        }
+      },
+      {
+        body: t.Object({
+          user_key: t.Numeric({ error: "user_key harus berupa angka" }),
+          score_cf: t.Numeric({ error: "score_cf harus berupa angka (1-5)" }),
+          score_chat: t.Numeric({ error: "score_chat harus berupa angka (1-5)" }),
+          message: t.Optional(t.String()),
         }),
       }
     )

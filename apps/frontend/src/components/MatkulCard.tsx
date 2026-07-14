@@ -34,7 +34,7 @@ export const MatkulCard = ({ mk, isSelected, activeTooltipId, setActiveTooltipId
                     <div className={`text-[11px] font-black leading-tight ${!selected && "text-zinc-500 dark:text-zinc-400"}`}>
                         {mk.matkul}
                     </div>
-                    <div className="flex flex-wrap gap-2 text-[9px] opacity-70 items-center">
+                    <div className="flex flex-wrap gap-2 text-xxs opacity-70 items-center">
                         {mk.kode && (
                             <span className={`px-1 py-px border font-bold ${selected ? "border-black dark:border-current" : "border-zinc-400 text-zinc-500"}`}>
                                 {mk.kode}
@@ -47,7 +47,7 @@ export const MatkulCard = ({ mk, isSelected, activeTooltipId, setActiveTooltipId
                             </span>
                         )}
                         {mk.semester && (
-                            <span className={`px-1.5 py-px border border-black dark:border-white font-black text-[9px] shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] dark:shadow-[1.5px_1.5px_0px_0px_rgba(255,255,255,1)] text-white
+                            <span className={`px-1.5 py-px border border-black dark:border-white font-black text-xxs shadow-[1.5px_1.5px_0px_0px_rgba(0,0,0,1)] dark:shadow-[1.5px_1.5px_0px_0px_rgba(255,255,255,1)] text-white
                                 ${mk.semester % 2 !== 0
                                     ? "bg-neo-blue"
                                     : "bg-neo-purple"
@@ -92,7 +92,7 @@ export const MatkulCard = ({ mk, isSelected, activeTooltipId, setActiveTooltipId
                 onMouseLeave={() => setActiveTooltipId(null)}
             >
                 <span className="text-[8px] font-black uppercase opacity-40 shrink-0">Dosen</span>
-                <span className="text-[9px] font-semibold truncate opacity-80">{dosenPreview}</span>
+                <span className="text-xxs font-semibold truncate opacity-80">{dosenPreview}</span>
                 {hasMultipleDosen && (
                     <>
                         <button
@@ -111,7 +111,7 @@ export const MatkulCard = ({ mk, isSelected, activeTooltipId, setActiveTooltipId
                                 ${isTooltipOpen ? 'flex' : 'hidden'}`}
                         >
                             {dosenList.map((d, i) => (
-                                <span key={i} className="text-[9px] font-semibold leading-tight text-nowrap">
+                                <span key={i} className="text-xxs font-semibold leading-tight text-nowrap">
                                     {i + 1}. {d}
                                 </span>
                             ))}
@@ -124,7 +124,7 @@ export const MatkulCard = ({ mk, isSelected, activeTooltipId, setActiveTooltipId
             {mk.prasyarat && (
                 <div className="flex items-center gap-1">
                     <span className="text-[8px] font-black uppercase opacity-40 shrink-0">Prasyarat</span>
-                    <span className="text-[9px] opacity-70 truncate">{mk.prasyarat}</span>
+                    <span className="text-xxs opacity-70 truncate">{mk.prasyarat}</span>
                 </div>
             )}
         </div>

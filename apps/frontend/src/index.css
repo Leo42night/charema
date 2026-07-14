@@ -36,6 +36,8 @@
 
   /* Font */
   --font-space: 'Space Mono', monospace;
+  --text-xxs: 9px;
+  --text-xxs--line-height: 12px;
 }
 
 @theme inline {
@@ -114,6 +116,8 @@
     --sidebar-accent-foreground: oklch(0.205 0 0);
     --sidebar-border: oklch(0.922 0 0);
     --sidebar-ring: oklch(0.708 0 0);
+    --shadow-neo-sm: 2px 2px 0px 0px oklch(0% 0 0);
+
 
     /* Fallback jika JS belum berjalan */
   --vh: 1vh;

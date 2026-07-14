@@ -11,8 +11,7 @@ bun prisma generate
 bun prisma generate --schema prisma/schema-pg.prisma
 bun prisma db seed
 ## koneksi `dev.db` ke HeidiSQL Sqlite, lihat isinya
-bun prisma db push # jika ada update *.prisma -> update db
-# jika ada update
+# jika ada update file *.prisma skema database
 bun prisma db push --force-reset
 ```
 3. Database: Deployment ke production

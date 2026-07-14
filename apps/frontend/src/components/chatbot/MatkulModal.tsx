@@ -150,7 +150,7 @@ export default function MatkulModal({
                             pilih mata kuliah favorit anda
                         </span>
                         {totalMatkul > 0 && (
-                            <span className="text-[9px] opacity-50 mt-0.5">
+                            <span className="text-xxs opacity-50 mt-0.5">
                                 Terdapat {totalMatkul} opsi MK
                             </span>
                         )}
@@ -178,7 +178,7 @@ export default function MatkulModal({
                         <button
                             onClick={handleSearch}
                             disabled={loading}
-                            className="neo-btn px-3 py-1.5 bg-neo-yellow text-black text-[10px] shadow-neo-sm"
+                            className="neo-btn px-3 py-1.5 bg-neo-yellow text-black text-xxs shadow-neo-sm"
                         >
                             {loading ? "..." : "CARI"}
                         </button>
@@ -225,7 +225,7 @@ export default function MatkulModal({
                                         <div className="text-[11px] font-black leading-tight">
                                             {mk.matkul}
                                         </div>
-                                        <div className="flex items-center flex-wrap gap-2 text-[9px]">
+                                        <div className="flex items-center flex-wrap gap-2 text-xxs">
                                             {mk.kode && (
                                                 <span className="opacity-70 px-1 py-px border border-black dark:border-current">
                                                     {mk.kode}
@@ -245,7 +245,7 @@ export default function MatkulModal({
                                                 onMouseEnter={() => setActiveTooltipId(mk.item)} // Desktop hover masuk
                                                 onMouseLeave={() => setActiveTooltipId(null)}   // Desktop hover keluar
                                             >
-                                                <span className="text-[9px] font-semibold truncate max-w-35">{dosenPreview}</span>
+                                                <span className="text-xxs font-semibold truncate max-w-35">{dosenPreview}</span>
                                                 {hasMultipleDosen && (
                                                     <>
                                                         <button
@@ -265,7 +265,7 @@ export default function MatkulModal({
                                                             ${isTooltipOpen ? 'flex' : 'hidden'}`}
                                                         >
                                                             {dosenList.map((d, i) => (
-                                                                <span key={i} className="text-[9px] font-semibold truncate leading-tight text-nowrap">
+                                                                <span key={i} className="text-xxs font-semibold truncate leading-tight text-nowrap">
                                                                     {i + 1}. {d}
                                                                 </span>
                                                             ))}
@@ -275,7 +275,7 @@ export default function MatkulModal({
                                             </div>
                                         </div>
                                         {/* Baris ke-2 */}
-                                        <div className="flex flex-wrap items-center gap-2 text-[9px]">
+                                        <div className="flex flex-wrap items-center gap-2 text-xxs">
                                             <span className="font-bold">{category_map[mk.category]}</span>
                                             <span className="italic text-neutral-500 dark:text-neutral-400 font-normal">
                                                 Update {2000 + mk.tahun} {mk.sm === 1 ? "Feb" : "Aug"}
@@ -293,7 +293,7 @@ export default function MatkulModal({
                 <div className="shrink-0 border-t-2 border-black dark:border-neo-yellow">
                     {selectedMK.length > 0 && (
                         <div className="p-3 bg-white dark:bg-zinc-900 flex flex-col gap-2 border-b-2 border-black dark:border-neo-yellow">
-                            <div className="flex justify-between text-[10px] font-black">
+                            <div className="flex justify-between text-xxs font-black">
                                 {/* Kelompok Kiri: Teks Jumlah & Tombol Reset */}
                                 <div className="flex items-center gap-2">
                                     <span>{selectedMK.length} MK dipilih</span>
@@ -318,7 +318,7 @@ export default function MatkulModal({
                                 {selectedMK.map((mk, index) => (
                                     <div
                                         key={index}
-                                        className="flex items-center gap-1 bg-neo-yellow text-black border-2 border-black px-1.5 py-0.5 text-[9px] font-mono font-black"
+                                        className="flex items-center gap-1 bg-neo-yellow text-black border-2 border-black px-1.5 py-0.5 text-xxs font-mono font-black"
                                     >
                                         <span>{mk.kode ? `${mk.kode} — ` : ""}{mk.matkul}</span>
                                         <button
@@ -335,14 +335,14 @@ export default function MatkulModal({
                     <div className="p-3 flex gap-2">
                         <button
                             onClick={onClose}
-                            className="neo-btn flex-1 py-2.5 bg-white dark:bg-zinc-900 dark:text-white text-[10px] shadow-neo-sm border-black dark:border-neo-yellow"
+                            className="neo-btn flex-1 py-2.5 bg-white dark:bg-zinc-900 dark:text-white text-xxs shadow-neo-sm border-black dark:border-neo-yellow"
                         >
                             Tutup
                         </button>
                         <button
                             onClick={() => { onConfirm(); onClose(); }}
                             disabled={totalSKS < 22 && (!selectedMK.length || selectedMK.length < limitSelect)}
-                            className="neo-btn flex-1 py-2.5 bg-black text-neo-yellow text-[10px] shadow-neo-sm disabled:opacity-40 disabled:cursor-not-allowed dark:bg-neo-yellow dark:text-black dark:border-neo-yellow"
+                            className="neo-btn flex-1 py-2.5 bg-black text-neo-yellow text-xxs shadow-neo-sm disabled:opacity-40 disabled:cursor-not-allowed dark:bg-neo-yellow dark:text-black dark:border-neo-yellow"
                         >
                             KONFIRMASI ({selectedMK.length}/{limitSelect}) ↑
                         </button>

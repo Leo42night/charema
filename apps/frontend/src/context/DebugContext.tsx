@@ -37,9 +37,9 @@ function DebugPopup() {
   return (
     <div className="fixed bottom-100 right-4 z-999 font-mono">
       {/* Toggle Button */}
-      <button 
+      <button
         onClick={() => setIsOpen(!isOpen)}
-        className="neo-btn bg-neo-red text-white p-2 text-[10px] shadow-neo-sm border-2 border-black"
+        className="neo-btn bg-neo-red text-white p-2 text-xxs shadow-neo-sm border-2 border-black"
       >
         {isOpen ? "[ CLOSE DEBUG ]" : "[ DEBUG ]"}
       </button>
@@ -47,12 +47,12 @@ function DebugPopup() {
       {/* Value List */}
       {isOpen && (
         <div className="absolute bottom-12 right-0 w-64 max-h-80 overflow-y-auto bg-black border-2 border-neo-yellow p-3 shadow-neo shadow-neo-yellow/50 animate-in slide-in-from-bottom-2">
-          <div className="text-[10px] text-neo-yellow border-b border-neo-yellow/30 pb-2 mb-2 font-bold tracking-widest uppercase">
+          <div className="text-xxs text-neo-yellow border-b border-neo-yellow/30 pb-2 mb-2 font-bold tracking-widest uppercase">
             // System_Logs
           </div>
           <div className="flex flex-col gap-2">
             {Object.entries(debugData).map(([key, val]) => (
-              <div key={key} className="text-[10px]">
+              <div key={key} className="text-xxs">
                 <span className="text-neo-green font-bold">{key}:</span>
                 <pre className="text-white bg-zinc-900 p-1 mt-0.5 rounded border border-zinc-700 overflow-x-auto">
                   {JSON.stringify(val, null, 2)}

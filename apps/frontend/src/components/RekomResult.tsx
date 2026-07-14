@@ -54,7 +54,7 @@ export const RekomResult = ({
 
             {/* === SCOREBOARD KATEGORI === */}
             <div className="flex flex-col gap-1">
-                <div className="px-1 opacity-50 font-black text-[9px] uppercase tracking-tighter mb-1">
+                <div className="px-1 opacity-50 font-black text-xxs uppercase tracking-tighter mb-1">
                     Kategori Relevan
                 </div>
                 {categories.map((cat, idx) => {
@@ -78,11 +78,11 @@ export const RekomResult = ({
                                 />
                             )}
 
-                            <span className={`relative z-10 text-[9px] font-black w-4 shrink-0 opacity-60 ${isTop ? 'text-black' : ''}`}>
+                            <span className={`relative z-10 text-xxs font-black w-4 shrink-0 opacity-60 ${isTop ? 'text-black' : ''}`}>
                                 #{idx + 1}
                             </span>
 
-                            <span className={`relative z-10 flex-1 text-[10px] font-black truncate ${isTop ? 'text-black' : ''}`}>
+                            <span className={`relative z-10 flex-1 text-xxs font-black truncate ${isTop ? 'text-black' : ''}`}>
                                 <span className="hidden sm:inline">Kategori </span>{category_map[cat.category]}
                             </span>
 
@@ -103,7 +103,7 @@ export const RekomResult = ({
                                     : 'bg-neo-yellow text-black border-l border-black dark:border-neo-yellow'
                                 }`}>
                                 <span className="text-[6px] font-black uppercase leading-none">Score</span>
-                                <span className="text-[10px] font-black leading-tight">
+                                <span className="text-xxs font-black leading-tight">
                                     {cat.totalScore.toFixed(3)}
                                 </span>
                                 {/* Mobile only: tampil di bawah score */}
@@ -120,7 +120,7 @@ export const RekomResult = ({
             {/* === KURIKULUM KATEGORI TERATAS === */}
             {category_matkuls && category_matkuls.length > 0 && (
                 <div className="flex flex-col gap-1">
-                    <div className="px-1 opacity-50 font-black text-[9px] uppercase tracking-tighter mb-1">
+                    <div className="px-1 opacity-50 font-black text-xxs uppercase tracking-tighter mb-1">
                         Kurikulum — {category_map[categories[0].category] ?? `Kategori ${topCategoryKey}`}
                     </div>
                     <div className="flex flex-col gap-1">
@@ -154,13 +154,13 @@ export const RekomResult = ({
                                         onMouseLeave={() => setShowPopover(false)}
                                         onClick={() => setShowPopover(prev => !prev)}
                                     >
-                                        <span className="text-[10px] font-semibold block truncate cursor-pointer">
+                                        <span className="text-xxs font-semibold block truncate cursor-pointer">
                                             {cm.matkul}
                                         </span>
 
                                         {showPopover && (
                                             <div className="absolute bottom-full left-0 mb-1.5 z-50 px-2 py-1.5 border-2 border-black dark:border-neo-yellow bg-white dark:bg-zinc-900 shadow-[3px_3px_0_0_#000] dark:shadow-[3px_3px_0_0_#facc15] max-w-60">
-                                                <span className="text-[10px] font-semibold leading-tight wrap-break-word">
+                                                <span className="text-xxs font-semibold leading-tight wrap-break-word">
                                                     {cm.matkul}
                                                 </span>
                                             </div>
@@ -183,13 +183,13 @@ export const RekomResult = ({
             {/* === HEADER DAFTAR (hanya mode all) === */}
             {showListHeader && (
                 <>
-                    <div className="flex justify-between items-end px-1 font-black text-[9px] uppercase tracking-tighter text-neutral-800 dark:text-neutral-200">
+                    <div className="flex justify-between items-end px-1 font-black text-xxs uppercase tracking-tighter text-neutral-800 dark:text-neutral-200">
                         <span>Matkul yang anda pilih</span>
                         <span>
                             Rank / Score <span className="hidden md:inline">(kemungkinan lulus)</span>
                         </span>
                     </div>
-                    <p className="text-[9px] font-bold opacity-60 normal-case leading-tight">
+                    <p className="text-xxs font-bold opacity-60 normal-case leading-tight">
                         *Dalam daftar hasil rekomendasi Neural Collaborative Filtering
                     </p>
                 </>

@@ -30,6 +30,7 @@ model Score {
   user_key    Int   @id // user_key sekarang menjadi identitas unik utama
   score_cf    Int
   score_chat  Int
+  message     String? // kritik atau saran
   created_at  DateTime   @default(now()) // jadi catatan update untuk Achievement
 }
 

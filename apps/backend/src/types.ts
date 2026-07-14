@@ -10,8 +10,8 @@ export interface DbClient {
   score: { // camelCase
     upsert: (args: {
       where: { user_key: number };
-      update: { score_cf: number; score_chat: number, created_at: Date };
-      create: { user_key: number, score_cf: number; score_chat: number };
+      update: { score_cf: number; score_chat: number, message?: string, created_at: Date };
+      create: { user_key: number, score_cf: number; score_chat: number, message?: string };
     }) => Promise<any>;
     findMany: () => Promise<any[]>;
     aggregate: (args: any) => Promise<any>;

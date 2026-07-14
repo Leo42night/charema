@@ -101,7 +101,7 @@ export const MessageBubble = ({ msg }: { msg: Message }) => {
                         : "bg-neo-yellow text-black dark:bg-zinc-800 dark:text-neo-yellow dark:border-neo-yellow"
                     }`}
             >
-                <div className="text-[9px] uppercase font-bold mb-1 opacity-60">
+                <div className="text-xxs uppercase font-bold mb-1 opacity-60">
                     {msg.role === "user"
                         ? `User // ${msg.timestamp}`
                         : `System // ${msg.timestamp}`}
@@ -118,7 +118,7 @@ export const MessageBubble = ({ msg }: { msg: Message }) => {
                         onClick={() => {
                             setShowFeedback(!showFeedback)
                         }}
-                        className="absolute bottom-1.5 right-1.5 flex items-center gap-1 px-1.5 py-0.5 font-mono text-[9px] font-black uppercase border transition-all duration-100 active:translate-x-px active:translate-y-px 
+                        className="absolute bottom-1.5 right-1.5 flex items-center gap-1 px-1.5 py-0.5 font-mono text-xxs font-black uppercase border transition-all duration-100 active:translate-x-px active:translate-y-px 
                         bg-black text-white border-black hover:bg-zinc-800 dark:bg-neo-yellow dark:text-black dark:border-black"
                     >
                         <MessageSquarePlus className="w-2.5 h-2.5" />
@@ -131,7 +131,7 @@ export const MessageBubble = ({ msg }: { msg: Message }) => {
             {showFeedback && msg.role === "assistant" && (
                 <form
                     onSubmit={handleSendFeedback}
-                    className="animate-in fade-in slide-in-from-top-2 duration-150 flex gap-1.5 w-full bg-neo-white-neutral dark:bg-zinc-900 border-2 border-black p-1.5 shadow-[2px_2px_0_0_#000]"
+                    className="animate-in fade-in slide-in-from-top-2 duration-150 flex gap-1.5 w-full bg-neo-white-neutral dark:bg-zinc-900 border-2 border-black p-1.5 shadow-neo-yellow"
                 >
                     <input
                         type="text"
@@ -144,7 +144,7 @@ export const MessageBubble = ({ msg }: { msg: Message }) => {
                     <button
                         type="submit"
                         disabled={!feedbackInput.trim()}
-                        className="bg-neo-green text-black border-2 border-black px-3 py-1 font-mono text-[10px] font-black uppercase tracking-tight flex items-center gap-1 shadow-[1px_1px_0_0_#000] active:shadow-none active:translate-x-0.5 active:translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="bg-neo-green text-black border-2 border-black px-3 py-1 font-mono text-xxs font-black uppercase tracking-tight flex items-center gap-1 shadow-[1px_1px_0_0_#000] active:shadow-none active:translate-x-0.5 active:translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <Send className="w-2.5 h-2.5 stroke-[2.5]" />
                         <span className="hidden md:inline">Kirim</span>
@@ -172,7 +172,7 @@ export const ButtonMatkulModal = ({ setModalOpen }: {
                  shadow-[3px_3px_0_0_#000] dark:shadow-[3px_3px_0_0_#facc15]
                  hover:bg-neo-yellow dark:hover:bg-neo-yellow dark:hover:text-black
                  active:shadow-none active:translate-x-px active:translate-y-px
-                 transition-all text-[10px] font-black uppercase tracking-widest"
+                 transition-all text-xxs font-black uppercase tracking-widest"
         >
             <BookOpen className="w-3.5 h-3.5 shrink-0" />
             <span>Pilih Mata Kuliah</span>

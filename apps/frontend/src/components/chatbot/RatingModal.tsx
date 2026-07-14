@@ -10,7 +10,7 @@ import { elysiaErr } from "@/lib/elysiaErr";
 interface RatingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess?: (data: any) => void;
+  onSuccess?: () => void;
 }
 
 export const RatingModal: React.FC<RatingModalProps> = ({ isOpen, onClose, onSuccess }) => {
@@ -18,12 +18,12 @@ export const RatingModal: React.FC<RatingModalProps> = ({ isOpen, onClose, onSuc
   const token = useAuthStore((state) => state.token);
   const setRating = useAuthStore((state) => state.setRating);
   const rating = useAuthStore((state) => state.rating);
-  const tags = useChatStore((s) => s.tags);
   const dismissSave = useChatStore((s) => s.dismissSave);
 
   // State untuk menyimpan skor rating (1-5)
   const [scoreCF, setScoreCF] = useState<number>(0);
   const [scoreChat, setScoreChat] = useState<number>(0);
+  const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   // State hover untuk efek interaktif visual bintang
@@ -56,11 +56,11 @@ export const RatingModal: React.FC<RatingModalProps> = ({ isOpen, onClose, onSuc
         user_key: user.user_key,
         score_cf: scoreCF,
         score_chat: scoreChat,
-        tags: tags
+        message
       };
 
-      const response = await axios.post(
-        `${BACKEND_URL}/progress`,
+      await axios.post(
+        `${BACKEND_URL}/score`,
         payload,
         {
           headers: {
@@ -73,8 +73,8 @@ export const RatingModal: React.FC<RatingModalProps> = ({ isOpen, onClose, onSuc
 
       dismissSave();
 
-      toast.success("Terima kasih! Progress disimpan.");
-      if (onSuccess) onSuccess(response.data.data);
+      toast.success("Terima kasih! Rating disimpan.");
+      if (onSuccess) onSuccess();
       onClose();
     } catch (error: any) {
       elysiaErr(error);
@@ -87,9 +87,9 @@ export const RatingModal: React.FC<RatingModalProps> = ({ isOpen, onClose, onSuc
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-400 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4">
       {/* Container Utama Bergaya Neo-Brutalisme */}
-      <div className="relative w-full max-w-md bg-white border-4 border-black p-6 shadow-[6px_6px_0_0_#000] dark:bg-zinc-900 dark:border-neo-yellow dark:shadow-[6px_6px_0_0_oklch(89.5%_0.23_95)]">
+      <div className="relative w-full max-w-md max-h-[90vh] overflow-y-auto overscroll-contain bg-white border-4 border-black p-6 shadow-[6px_6px_0_0_#000] dark:bg-zinc-900 dark:border-neo-yellow dark:shadow-[6px_6px_0_0_oklch(89.5%_0.23_95)]">
 
         {/* Tombol Close */}
         <button
@@ -111,7 +111,7 @@ export const RatingModal: React.FC<RatingModalProps> = ({ isOpen, onClose, onSuc
         {/* Seksi 1: Neural Collaborative Filtering */}
         <div className="mb-6">
           <label className="block text-[11px] font-black uppercase tracking-wider text-black dark:text-neo-yellow mb-2">
-            1. Rekomendasi Matkul (Neural Collaborative Filtering)
+            1. Rekomendasi Matkul <span className="hidden sm:inline">(Neural Collaborative Filtering)</span>
           </label>
           <div className="flex gap-2">
             {[1, 2, 3, 4, 5].map((star) => (
@@ -137,7 +137,7 @@ export const RatingModal: React.FC<RatingModalProps> = ({ isOpen, onClose, onSuc
         {/* Seksi 2: Feed-Forward Neural Network */}
         <div className="mb-6">
           <label className="block text-[11px] font-black uppercase tracking-wider text-black dark:text-neo-yellow mb-2">
-            2. Chatbot (Feed-Forward Neural Network)
+            2. Chatbot <span className="hidden sm:inline">(Feed-Forward Neural Network)</span>
           </label>
           <div className="flex gap-2">
             {[1, 2, 3, 4, 5].map((star) => (
@@ -160,6 +160,24 @@ export const RatingModal: React.FC<RatingModalProps> = ({ isOpen, onClose, onSuc
           </div>
         </div>
 
+        {/* text pesan (opsional) */}
+        <div className="mb-6">
+          <label className="block text-[11px] font-black uppercase tracking-wider text-black dark:text-neo-yellow mb-2">
+            Pesan Tambahan <span className="opacity-50 normal-case font-bold">(opsional)</span>
+          </label>
+          <textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="Tulis masukan, kritik, atau saran kamu di sini..."
+            rows={3}
+            maxLength={500}
+            className="w-full resize-none border-2 border-black dark:border-neo-yellow bg-white dark:bg-zinc-900 px-3 py-2 text-[12px] text-black dark:text-neo-yellow placeholder:text-zinc-400 dark:placeholder:text-zinc-600 shadow-[3px_3px_0_0_#000] dark:shadow-[3px_3px_0_0_#facc15] focus:outline-none focus:translate-x-0.5 focus:translate-y-0.5 focus:shadow-none transition-all"
+          />
+          <div className="mt-1 text-right text-xxs font-bold text-zinc-400 dark:text-zinc-600">
+            {message.length}/500
+          </div>
+        </div>
+
         {/* Tombol Submit */}
         <button
           onClick={handleSubmitScore}
@@ -170,13 +188,8 @@ export const RatingModal: React.FC<RatingModalProps> = ({ isOpen, onClose, onSuc
               : "bg-neo-green text-black shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_oklch(89.5%_0.23_95)] hover:bg-opacity-90 active:shadow-none active:translate-x-1 active:translate-y-1"
             }`}
         >
-          {isSubmitting ? "MENGIRIM..." : "KIRIM_PROGRESS"}
+          {isSubmitting ? "MENGIRIM..." : "KIRIM_RATING"}
         </button>
-
-        {/* Keterangan Tambahan di Bawah Progress Bar */}
-        <p className="mt-3 text-[9px] font-bold opacity-60 normal-case leading-tight">
-          * progres ini juga akan menyimpan riwayat data tags yang Anda berhasil akses.
-        </p>
       </div>
     </div>
   );
