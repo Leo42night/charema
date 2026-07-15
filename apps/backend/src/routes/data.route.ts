@@ -19,31 +19,7 @@ async function initializeDatabase() {
 
 export const dataRoutes = (getPrisma: () => DbClient) =>
     new Elysia({ prefix: "/data" }) // Otomatis menambahkan prefix /data di semua rute di dalam file ini
-        // Middleware khusus untuk grup /data
-        .onRequest(({ request, set }) => {
-            const url = new URL(request.url);
-            // console.log(`[DEBUG] [${request.method}] ${url.pathname}`);
-
-            // console.log("[DEBUG] AWS_LAMBDA_FUNCTION_NAME ", process.env.AWS_LAMBDA_FUNCTION_NAME);
-            if (!process.env.AWS_LAMBDA_FUNCTION_NAME) return;
-
-            // Lewati preflight OPTIONS
-            if (request.method === "OPTIONS") return;
-
-            // Sisa pengecekan origin dan API Key
-            const origin = request.headers.get("origin");
-            const frontendUrl = process.env.FRONTEND_URL ?? "http://localhost:5173";
-            const key = url.searchParams.get("key");
-
-            if (origin === frontendUrl) return;
-
-            const apiKey = process.env.API_KEY || "ok";
-            if (key !== apiKey) {
-                set.status = 401;
-                return { message: "Unauthorized: Access denied without valid API Key" };
-            }
-        })
-        // Middleware khusus untuk grup /data
+        // Middleware khusus untuk grup /data (terlindung guard() jadi tidak merambah ke route diluar)
         .guard({
             beforeHandle: ({ request, set }) => {
                 const url = new URL(request.url);

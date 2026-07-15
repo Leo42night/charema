@@ -29,10 +29,8 @@ Proyek Monorepo dikelola menggunakan [BunJs](https://bun.com/), kode dengan [Typ
     - `nim_to_user.json` (ambil user key untuk kirim ke BE setelah dapat email pas login)
     - `category.json` (matkul yang tidak ada item_id (only by category_id) & map category_id -> name)
 
-## Progress Dev
-- Handle view category & view rekap
-- Hasil response rekomendasi menggunakan API LLM Chatbot
-- Issue: Kritik & Unlock tags tidak terload load dari backend saat login (reset saat login)
+## Log Important Commit
+- [Deploy Websocket AWS (API Gateway+Lambda)](https://github.com/Leo42night/charema/commit/adaf47486cf1fbd2f588be2d60a36f6db2cc22d5)
 
 ## Build Process
 Jika setup sudah selesai tapi ada perubahan berkala di kode. [Detail cara build ke AWS](https://github.com/Leo42night/ppwl-caps)
@@ -67,15 +65,11 @@ if not exist "dist-lambda\cert" mkdir "dist-lambda\cert" && xcopy /y "cert\globa
 cd dist-lambda && powershell -NoProfile -Command "Compress-Archive -Path * -DestinationPath ../lambda-backend.zip -Force" && cd ..
 aws lambda update-function-code --function-name remaku-be --zip-file fileb://lambda-backend.zip
 ## opsional: add environment
-aws lambda update-function-configuration --function-name remaku-be --environment "Variables={NODE_ENV=production,WS_MANAGEMENT_ENDPOINT=https://tkiidjhxxx.execute-api.us-east-1.amazonaws.com/production}"
-```
-
-# -- Code (AWS Lambda)
-cd dist-lambda && powershell -NoProfile -Command "Compress-Archive -Path * -DestinationPath ../lambda-backend.zip -Force" && cd ..
-aws lambda update-function-code --function-name remaku-be --zip-file fileb://lambda-backend.zip
+aws lambda update-function-configuration --function-name remaku-be --environment "Variables={NODE_ENV=production}"
 ```
 
 ## Tools
+- Jika pakai AWS CLI, tanyakan LLM untuk script lihat & ubah konfigurasi, lebih cepat daripada harus manual buka web. 
 ```sh
 # hapus folder node_modules, untuk reset skema monorepo agar distribusi package tersentralisasi
 FOR /d /r . %d in (node_modules) DO @IF EXIST "%d" rd /s /q "%d"

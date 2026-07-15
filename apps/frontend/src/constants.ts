@@ -2,7 +2,7 @@ export const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost
 export const SUGGESTED_PROMPTS = ["Hallo!", "Kamu ini apa?", "Kasih Rekomendasi mata kuliah dong!"];
 
 // local storage keys and cypher key (contant folding akan memakai nilai di env jika ada, jadi fallback value tidak akan pernah dipakai di production, hanya untuk development lokal saja)
-export const STORAGE_VERSION = "v1.7.3"; // Update jika: ada perubahan besar pada struktur data (reset localStorage browser user)
+export const STORAGE_VERSION = "v1.7.4"; // Update jika: ada perubahan besar pada struktur data (reset localStorage browser user)
 export const USER_STORAGE_KEY = import.meta.env.VITE_USER_STORAGE_KEY || "user_data";
 export const AVAILABLE_MATKULS_STORAGE_KEY = import.meta.env.VITE_AVAILABLE_MATKULS_STORAGE_KEY || "available_matkuls";
 
