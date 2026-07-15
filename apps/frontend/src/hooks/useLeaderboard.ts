@@ -23,7 +23,7 @@ export function useLeaderboard(websocketUrl: string) {
 
         ws.onopen = () => {
             setIsConnected(true);
-            console.log("WebSocket terhubung ke API Gateway");
+            // console.log("WebSocket terhubung ke API Gateway");
         };
 
         // 2. MENANGKAP NILAI BROADCAST DI SINI
@@ -44,7 +44,7 @@ export function useLeaderboard(websocketUrl: string) {
 
         ws.onclose = () => {
             setIsConnected(false);
-            console.log("WebSocket terputus");
+            // console.log("WebSocket terputus");
         };
 
         // 3. Cleanup: Putus koneksi jika komponen tidak lagi dirender (unmount)

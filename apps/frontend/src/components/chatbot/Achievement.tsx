@@ -50,14 +50,14 @@ const Achievement: React.FC<AchievementProps> = ({ isDesktop, isOnline }) => {
   const saveUpdateTag = async () => {
     setLoading(true);
     try {
-      const response = await axios.post(`${BACKEND_URL}/achievement`,
+      await axios.post(`${BACKEND_URL}/achievement`,
         { user_key: user?.user_key, tags }, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
       }); // Sesuaikan endpoint backend Anda
-      console.log("response.data", response.data);
+      // console.log("response.data", response.data);
       dismissSave();
       toast.success("Unlocked Tags is saved!.");
     } catch (error) {

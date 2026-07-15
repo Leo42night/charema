@@ -22,9 +22,9 @@ export const dataRoutes = (getPrisma: () => DbClient) =>
         // Middleware khusus untuk grup /data
         .onRequest(({ request, set }) => {
             const url = new URL(request.url);
-            console.log(`[DEBUG] [${request.method}] ${url.pathname}`);
+            // console.log(`[DEBUG] [${request.method}] ${url.pathname}`);
 
-            console.log("[DEBUG] AWS_LAMBDA_FUNCTION_NAME ", process.env.AWS_LAMBDA_FUNCTION_NAME);
+            // console.log("[DEBUG] AWS_LAMBDA_FUNCTION_NAME ", process.env.AWS_LAMBDA_FUNCTION_NAME);
             if (!process.env.AWS_LAMBDA_FUNCTION_NAME) return;
 
             // Lewati preflight OPTIONS
@@ -47,7 +47,7 @@ export const dataRoutes = (getPrisma: () => DbClient) =>
         .guard({
             beforeHandle: ({ request, set }) => {
                 const url = new URL(request.url);
-                console.log(`[DEBUG] [${request.method}] ${url.pathname}`);
+                // console.log(`[DEBUG] [${request.method}] ${url.pathname}`);
 
                 if (request.method === "OPTIONS") return;
 

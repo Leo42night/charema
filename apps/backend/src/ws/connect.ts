@@ -4,7 +4,7 @@ import type { APIGatewayProxyHandler } from "aws-lambda";
 const ddb = new DynamoDBClient({});
 
 export const handler: APIGatewayProxyHandler = async (event) => {
-    console.log("FULL EVENT:", JSON.stringify(event, null, 2));
+    // console.log("FULL EVENT:", JSON.stringify(event, null, 2));
 
     const connectionId = event.requestContext?.connectionId;
     if (!connectionId) {

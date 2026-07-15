@@ -7,9 +7,7 @@ export interface SendChatResponse {
   randomResponse: string;
 }
 
-/* =========================
-   STATE
-========================= */
+// STATE
 let modelAi: tf.GraphModel | null = null;
 let modelLoading = false;
 
@@ -18,9 +16,7 @@ let responsesAi: Record<string, string[]> = {};
 let classLabelsAi: string[] = [];
 let maxLenAi = 0;
 
-/* =========================
-   INIT MODEL
-========================= */
+// INIT MODEL
 export const initModelAi = async (): Promise<void> => {
   if (modelAi || modelLoading) return;
 
@@ -71,9 +67,7 @@ export const initModelAi = async (): Promise<void> => {
   }
 };
 
-/* =========================
-   PREPROCESS (FIXED)
-========================= */
+// PREPROCESS (FIXED)
 const cleanText = (text: string): string => {
   const cleaned = text
     .toLowerCase()
@@ -101,9 +95,7 @@ const tokenize = (text: string): number[] => {
   return tokens;
 };
 
-/* =========================
-   PAD SEQUENCES (MATCH TRAINING)
-========================= */
+// PAD SEQUENCES (MATCH TRAINING)
 const padSequences = (
   sequences: number[][],
   maxlen: number,
@@ -137,9 +129,7 @@ const padSequences = (
   });
 };
 
-/* =========================
-   PREDICT
-========================= */
+// PREDICT
 const predict = async (text: string): Promise<number[]> => {
   if (!modelAi) throw new Error("Model not loaded");
 
@@ -171,9 +161,7 @@ const predict = async (text: string): Promise<number[]> => {
   }
 };
 
-/* =========================
-   MAIN FUNCTION
-========================= */
+// MAIN FUNCTION
 export const sendChatTfjs = async (
   text: string
 ): Promise<SendChatResponse> => {

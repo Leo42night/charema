@@ -96,7 +96,7 @@ bun build src/lambda.ts --outdir dist-lambda --target node --format cjs --extern
 
 # 3. copy Generated Prisma Client (postgres), dependency, & certificate
 ## Versi Windows CMD
-xcopy /s /i /e src\generated\prisma-pg dist-lambda\generated\prisma-pg
+xcopy /s /i /e /y src\generated\prisma-pg dist-lambda\generated\prisma-pg
 ## -- jika SSH key belum ada --
 if not exist cert mkdir cert && curl -o cert/global-bundle.pem https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem
 ### -- masukkan SSH & node_modules/.prisma ke folder dist-lambda/ -- 
@@ -107,10 +107,9 @@ if not exist "dist-lambda\cert" mkdir "dist-lambda\cert" && xcopy /y "cert\globa
 ### Zipping untuk upload (10MB -> 3.8MB)
 cd dist-lambda && powershell -NoProfile -Command "Compress-Archive -Path * -DestinationPath ../lambda-backend.zip -Force" && cd ..
 aws lambda update-function-code --function-name remaku-be --zip-file fileb://lambda-backend.zip
-
 aws lambda update-function-configuration --function-name remaku-be --environment "Variables={NODE_ENV=production}"
 ```
-
+  
 ### 2. Buat Lambda function di AWS Console
 Buat Function -> Tambah Role -> Upload ZIP konfigurasi env vars & Function URL. 
 

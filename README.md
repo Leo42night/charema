@@ -66,8 +66,8 @@ if not exist "dist-lambda\cert" mkdir "dist-lambda\cert" && xcopy /y "cert\globa
 ### Zipping untuk upload (10MB -> 3.8MB)
 cd dist-lambda && powershell -NoProfile -Command "Compress-Archive -Path * -DestinationPath ../lambda-backend.zip -Force" && cd ..
 aws lambda update-function-code --function-name remaku-be --zip-file fileb://lambda-backend.zip
-
-aws lambda update-function-configuration --function-name remaku-be --environment "Variables={NODE_ENV=production}"
+## opsional: add environment
+aws lambda update-function-configuration --function-name remaku-be --environment "Variables={NODE_ENV=production,WS_MANAGEMENT_ENDPOINT=https://tkiidjhxxx.execute-api.us-east-1.amazonaws.com/production}"
 ```
 
 # -- Code (AWS Lambda)

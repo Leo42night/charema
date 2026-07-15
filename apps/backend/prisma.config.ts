@@ -4,10 +4,10 @@ const dbUrl = process.env.DATABASE_URL || "file:./dev.db";
 const schema = dbUrl.startsWith("postgre") ? "prisma/schema-pg.prisma" : "prisma/schema.prisma";
 
 // --- LOG UNTUK DEBUGGING ---
-console.log("==========================================");
-console.log("DATABASE_URL :", dbUrl);
-console.log("Skema        :", schema);
-console.log("==========================================");
+// console.log("==========================================");
+// console.log("DATABASE_URL :", dbUrl);
+// console.log("Skema        :", schema);
+// console.log("==========================================");
 
 export default defineConfig({
   schema: schema,

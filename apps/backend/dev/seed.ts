@@ -4,7 +4,7 @@ async function initializeDatabase() {
   if (process.env.NODE_ENV === "dev") {
     const { getPrisma: localDb, dbUrl } = await import("../prisma/db");
     prisma = localDb();
-    console.log("dbUrl", dbUrl);
+    // console.log("dbUrl", dbUrl);
   } else {
     const { getPrisma: prodDb } = await import("../prisma/dbPostgres");
     prisma = prodDb();
@@ -14,7 +14,7 @@ async function initializeDatabase() {
 async function main() {
   await initializeDatabase();
 
-  console.log("Memulai proses seeding data dummy...");
+  // console.log("Memulai proses seeding data dummy...");
 
   // 1. Bersihkan database terlebih dahulu untuk menghindari bentrok primary key / duplikasi data
   // Urutan penghapusan bebas karena saat ini belum ada tabel yang terikat Foreign Key eksplisit
@@ -23,7 +23,7 @@ async function main() {
   await prisma.achievement.deleteMany({});
   await prisma.feedback.deleteMany({});
 
-  console.log("Database berhasil dibersihkan.");
+  // console.log("Database berhasil dibersihkan.");
 
   // 2. Seed Tabel RecomTarget
   await prisma.recomTarget.createMany({
@@ -34,7 +34,7 @@ async function main() {
       { user_key: 4044, matkuls: [8, 9, 10] },
     ]
   });
-  console.log("Selesai seeding: RecomTarget");
+  // console.log("Selesai seeding: RecomTarget");
 
   // 3. Seed Tabel Score (user_key bertindak sebagai Primary Key unik)
   await prisma.score.createMany({
@@ -45,7 +45,7 @@ async function main() {
       { user_key: 4044, score_cf: 2, score_chat: 3 },
     ]
   });
-  console.log("Selesai seeding: Score");
+  // console.log("Selesai seeding: Score");
 
   // 4. Seed Tabel Achievement (user_key bertindak sebagai Primary Key unik)
   // Menyediakan variasi panjang array JSON untuk menguji fungsionalitas top 10 user Anda sebelumnya
@@ -57,7 +57,7 @@ async function main() {
       { user_key: 4044, tags: [] },                                         // 0 tags (Empty Array)
     ]
   });
-  console.log("Selesai seeding: Achievement");
+  // console.log("Selesai seeding: Achievement");
 
   // 5. Seed Tabel Feedback
   // Mencakup skenario validasi bisnis Anda (user_key ada/kosong, email ada/kosong)
@@ -89,9 +89,9 @@ async function main() {
       }
     ]
   });
-  console.log("Selesai seeding: Feedback");
+  // console.log("Selesai seeding: Feedback");
 
-  console.log("Proses seeding selesai dengan sukses!");
+  // console.log("Proses seeding selesai dengan sukses!");
 }
 
 main()

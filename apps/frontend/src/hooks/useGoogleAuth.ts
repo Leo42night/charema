@@ -41,7 +41,7 @@ export const useGoogleAuth = () => {
                 (nim === "H1101221016" ? 1369 : dummyUserKey);
             // 519 (siskom), 1369 (sisfo), 4404 = H11ACC3DUMY untuk akun dummy
 
-            console.log("userKey :", userKey);
+            // console.log("userKey :", userKey);
 
             const userData: UserData = {
                 name: resG.data.name,
@@ -57,7 +57,7 @@ export const useGoogleAuth = () => {
                 access_token: tokenResponse.access_token,
                 user_data: userData,
             }); // user_recomTarget_one
-            console.log("Response dari backend:", backendRes.data); // Debug: lihat response dari backend
+            // console.log("Response dari backend:", backendRes.data); // Debug: lihat response dari backend
 
             const jwtToken = backendRes.data.token;
 
@@ -133,7 +133,7 @@ export const useGoogleAuth = () => {
 
     const login = useGoogleLogin({
         onSuccess: handleGoogleSuccess,
-        // onError: () => console.log("Login Failed"),
+        // onError: () => // console.log("Login Failed"),
     });
 
     return { login, isLoading };

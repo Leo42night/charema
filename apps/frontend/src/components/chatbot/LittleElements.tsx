@@ -69,7 +69,7 @@ export const MessageBubble = ({ msg }: { msg: Message }) => {
                     }
                 }
             );
-            console.log("response.data", response.data);
+            // console.log("response.data", response.data);
             setFeedbackNumber(response.data.count);
             toast.info("berhasil mengirim feedback.");
         } catch (error: any) {
@@ -81,7 +81,7 @@ export const MessageBubble = ({ msg }: { msg: Message }) => {
                 console.log(errorBody.detail || null);
             } else {
                 // Jika error terjadi karena jaringan putus atau server mati total
-                console.log("Gagal terhubung ke server");
+                // console.log("Gagal terhubung ke server");
             }
         }
 

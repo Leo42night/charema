@@ -14,6 +14,6 @@ app
   .use(swagger())
   .listen(3000);
 
-console.log("🦊 Backend (local)  → http://localhost:3000");
-console.log("🦊 FRONTEND_URL → process.env.FRONTEND_URL!"); // data akses pakai env
-console.log("🦊 DATABASE_URL →", dbUrl);
+// console.log("🦊 Backend (local)  → http://localhost:3000");
+// console.log("🦊 FRONTEND_URL → process.env.FRONTEND_URL!"); // data akses pakai env
+// console.log("🦊 DATABASE_URL →", dbUrl);

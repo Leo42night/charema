@@ -29,8 +29,8 @@ const AboutPage = () => {
   const { leaderboard, isConnected } = useLeaderboard(import.meta.env.VITE_WS_URL);
 
   useEffect(() => {
-    console.log("leaderboard", leaderboard);
-    console.log("isConnected", isConnected);
+    // console.log("leaderboard", leaderboard);
+    // console.log("isConnected", isConnected);
   }, [leaderboard, isConnected]);
 
   // Fallback aman pakai useMemo, bukan inline
@@ -63,7 +63,7 @@ const AboutPage = () => {
     const fetchStats = async () => {
       try {
         const response = await axios.get(`${BACKEND_URL}/data/stats`); // Sesuaikan endpoint backend Anda
-        console.log("response.data", response.data)
+        // console.log("response.data", response.data)
         const scr = response.data.scores_stats;
         setStats({
           n_rec_users: response.data.n_rec_users || 0,

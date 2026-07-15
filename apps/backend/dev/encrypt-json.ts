@@ -4,7 +4,7 @@ import path from "path";
 import CryptoJS from "crypto-js";
 
 const KEY: string = process.env.MODEL_ENCRYPT_KEY!; // pseudo security
-console.log(KEY);
+// console.log(KEY);
 
 function encrypt(data: string) {
   return CryptoJS.AES.encrypt(data, KEY).toString();
@@ -19,7 +19,7 @@ function processFile(fileName: string) {
 
   fs.writeFileSync(outputPath, encrypted);
 
-  console.log(`Encrypted: ${fileName}`);
+  // console.log(`Encrypted: ${fileName}`);
 }
 
 processFile("word_index.json");

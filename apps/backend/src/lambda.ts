@@ -6,9 +6,9 @@ let app: ReturnType<typeof createApp>;
 
 export const handler = async (event: any) => {
   // DEBUG: log seluruh event untuk lihat apakah OPTIONS masuk
-  console.log("[EVENT] method:", event.requestContext?.http?.method);
-  console.log("[EVENT] path:", event.rawPath);
-  console.log("[EVENT] headers:", JSON.stringify(event.headers));
+  // console.log("[EVENT] method:", event.requestContext?.http?.method);
+  // console.log("[EVENT] path:", event.rawPath);
+  // console.log("[EVENT] headers:", JSON.stringify(event.headers));
 
   await loadConfig(); // load SSM sekali, lalu di-cache
 
@@ -18,16 +18,18 @@ export const handler = async (event: any) => {
 
   // DEBUG ENV
   console.log("[DATABASE_URL]:", process.env.DATABASE_URL);
-  console.log("[FRONTEND_URL] env:", process.env.FRONTEND_URL);
-  console.log("[API_KEY] env:", process.env.API_KEY);
-  console.log("[JWT_SECRET] env:", process.env.JWT_SECRET);
+  console.log("[WS_MANAGEMENT_ENDPOINT]:", process.env.WS_MANAGEMENT_ENDPOINT);
+  // WS_MANAGEMENT_ENDPOINT harus disimpan di SSM
+  // console.log("[FRONTEND_URL] env:", process.env.FRONTEND_URL);
+  // console.log("[API_KEY] env:", process.env.API_KEY);
+  // console.log("[JWT_SECRET] env:", process.env.JWT_SECRET);
 
   const frontendUrl = process.env.FRONTEND_URL ?? "http://localhost:5173";
 
   // Handle preflight OPTIONS langsung di handler — sebelum masuk Elysia
   // Lambda URL CORS config tidak reliable, jadi kita handle manual
   if (event.requestContext.http.method === "OPTIONS") {
-    console.log("[OPTIONS] preflight handled for:", event.rawPath);
+    // console.log("[OPTIONS] preflight handled for:", event.rawPath);
     return {
       statusCode: 204,
       headers: {
@@ -58,14 +60,14 @@ export const handler = async (event: any) => {
   const resHeaders = Object.fromEntries(response.headers);
 
   // DEBUG — log headers sebelum inject
-  console.log("[RESPONSE] status:", response.status);
-  console.log("[RESPONSE] headers before inject:", JSON.stringify(resHeaders));
+  // console.log("[RESPONSE] status:", response.status);
+  // console.log("[RESPONSE] headers before inject:", JSON.stringify(resHeaders));
 
   resHeaders["Access-Control-Allow-Origin"] = frontendUrl;
   resHeaders["Access-Control-Allow-Credentials"] = "true";
 
   // DEBUG — log headers setelah inject  
-  console.log("[RESPONSE] headers after inject:", JSON.stringify(resHeaders));
+  // console.log("[RESPONSE] headers after inject:", JSON.stringify(resHeaders));
 
   return {
     statusCode: response.status,
