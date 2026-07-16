@@ -99,7 +99,7 @@ bun build src/lambda.ts --outdir dist-lambda --target node --format cjs --extern
 xcopy /s /i /e /y src\generated\prisma-pg dist-lambda\generated\prisma-pg
 ## -- jika SSH key belum ada --
 if not exist cert mkdir cert && curl -o cert/global-bundle.pem https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem
-### -- masukkan SSH & node_modules/.prisma ke folder dist-lambda/ -- 
+### -- masukkan SSH ke folder dist-lambda/ -- 
 if not exist "dist-lambda\cert" mkdir "dist-lambda\cert" && xcopy /y "cert\global-bundle.pem" "dist-lambda\cert\"
 ```
 ```sh

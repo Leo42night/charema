@@ -8,7 +8,7 @@ Main:
 - **Rekomendasi Matkul** model *Neural Collaborative-Filtering* dengan dataset Nilai mahasiswa Sisfo & Resiksom Untan dari tahun 2021-2025. 
 
 > [!NOTE]
-> Target penelitian adalah mahasiswa akt 2023-2025. Prediction sudah dilakukan sebelumnya untuk mencangkup semua kemungkinan skenario. Jadi tidak perlu fitur inference, proses prediction lebih cepat.
+> Target penelitian adalah mahasiswa akt 2023-2025. Prediction sudah dilakukan sebelumnya untuk mencangkup semua kemungkinan skenario. Jadi tidak perlu server inference, proses prediction lebih cepat.
 
 Additional:
 - **Google Auth** untuk Verifikasi Login Mahasiswa target penelitian.
@@ -56,7 +56,7 @@ bun build src/lambda.ts --outdir dist-lambda --target node --format cjs --extern
 # copy Generated Prisma Client (postgres), dependency, & certificate
 ## Versi Windows CMD
 xcopy src\generated\prisma-pg dist-lambda\generated\prisma-pg /i /e /y
-### -- masukkan SSH & node_modules/.prisma ke folder dist-lambda/ -- 
+### -- masukkan SSH ke folder dist-lambda/ -- 
 if not exist "dist-lambda\cert" mkdir "dist-lambda\cert" && xcopy /y "cert\global-bundle.pem" "dist-lambda\cert\"
 ```
 ```sh

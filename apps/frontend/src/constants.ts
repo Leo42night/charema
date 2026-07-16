@@ -9,4 +9,4 @@ export const AVAILABLE_MATKULS_STORAGE_KEY = import.meta.env.VITE_AVAILABLE_MATK
 // chat model key & achievement key
 export const ACHIEVEMENT_TAGS_KEY = import.meta.env.VITE_ACHIEVEMENT_TAGS_KEY || "achievement";
 export const TOTAL_TAGS = 10;
-export const TUTORIAL_YT = "https://www.youtube.com/embed/bZjnrh71Mdo?rel=0&modestbranding=1"
+export const TUTORIAL_YT = "https://www.youtube.com/embed/saFoXVF1Rmc?rel=0&modestbranding=1"
