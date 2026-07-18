@@ -12,7 +12,7 @@ export default function useVersionLocalStorage() {
 
         // 2. Jika versi berbeda (atau belum pernah ada/null)
         if (currentVersion !== STORAGE_VERSION) {
-            // console.log("Update Fitur, reset seluruh data aplikasi");
+            console.log("Update Fitur, reset seluruh data aplikasi");
 
             // 1. HAPUS STORAGE BAWAAN
             localStorage.clear();

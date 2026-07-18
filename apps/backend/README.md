@@ -12,6 +12,7 @@ bun --env-file=.env.production sls deploy --stage dev
 bunx serverless deploy --stage dev
 bunx dotenv -e .env.production -- npx serverless deploy --stage dev
 ```
+
 ## Setup Data & Database
 1. Data JSON yang perlu disiapkan Google Collab NCF Rekomendasi (lihat `README.md` utama). gunakan template `user_cf_scores-dummy.json` untuk testing.
 2. Database: setup Awal agar jalan di local
@@ -44,6 +45,9 @@ bun seed:pg
 ## lihat isinya di heidiSQL koneksi Postgres
 ```
 Jika butuh install HeidiSQL ringan pakai [Setup Laragon Ini](https://drive.google.com/drive/folders/1w6Mz9eMF7XSbuu_Hc8chqfEiQondMfEK)
+
+## Buat Database AWS RDS Postgres
+[Seperti ini](https://github.com/Leo42night/monorepo/blob/main/mono-aws-team.md#fase-3--anggota-b-rds-database)
 
 ## AWS S3 Model Chatbot TFJS Deployment
 1. Build model chatbot pakai kode [Google Colab Chatbot FFNN](lihat di `README.md` utama)
@@ -110,7 +114,7 @@ aws lambda update-function-code --function-name remaku-be --zip-file fileb://lam
 aws lambda update-function-configuration --function-name remaku-be --environment "Variables={NODE_ENV=production}"
 ```
   
-### 2. Buat Lambda function di AWS Console
+### Buat Lambda function di AWS Console
 Buat Function -> Tambah Role -> Upload ZIP konfigurasi env vars & Function URL. 
 
 **Proses Lambda function Backend Elysia Prisma berikut:**

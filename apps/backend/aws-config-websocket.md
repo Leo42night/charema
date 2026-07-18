@@ -18,6 +18,7 @@ Karena Lambda HTTP kamu yang sekarang (Elysia) itu untuk REST API, kamu butuh **
 
 2. Untuk masing-masing, paste kode ini ke dalam file `index.mjs` nya (build dulu TS ini jadi JS biasa):
 ```sh
+cd apps/backend
 bun build ./src/ws/connect.ts --outdir ./dist-lambda-ws/connect --target=node --format=esm --external @aws-sdk/client-dynamodb
 bun build ./src/ws/disconnect.ts --outdir ./dist-lambda-ws/disconnect --target=node --format=esm --external @aws-sdk/client-dynamodb
 move /y dist-lambda-ws\connect\connect.js dist-lambda-ws\connect\index.mjs
@@ -50,14 +51,13 @@ aws lambda update-function-code --function-name ws-disconnect-handler --zip-file
    - **Route selection expression**: `$request.body.action` (default, dibiarkan aja — kita gak akan pakai custom action dari client, cuma butuh connect/disconnect)
 3. **Add route** — API Gateway otomatis kasih 3 default route: `$connect`, `$disconnect`, `$default`. Cukup pakai 2 yang pertama.
 4. Klik **Next** — di halaman **Attach integrations**.
-5. **Next → Create stage** -> Create:
-   - Stage name: `production` (atau `dev`, bebas — ini akan jadi bagian dari URL)
-   - Auto-deploy: **ON** (biar tiap perubahan langsung ke-deploy)
-6. Create Route (setelah dibuat):
    - Route `$connect` → **Integration type: Lambda** → Lambda proxy integration (True) -> pilih `ws-connect-handler`
    - Route `$disconnect` → **Integration type: Lambda** → Lambda proxy integration (True) -> pilih `ws-disconnect-handler`
+5. **Next → Create stage** -> Create:
+   - Stage name: `production` (atau `dev`, bebas — ini akan jadi bagian dari URL)
 6. **Deploy**
 
+Opsional, untuk cek jika ada masalah koneksi Websocket:
 ```sh
 # Buat IAM Role untuk CloudWatch logging API Gateway (full watch)
 ## IAM -> Roles (add) -> Service or use case: API Gateway, name: IaAPIGatewayCloudWatchLogsRole
@@ -124,13 +124,13 @@ Lambda **Elysia (HTTP)** kamu yang manggil `broadcastLeaderboard()` butuh izin `
 
 ## Bagian 5: Set environment variable di Lambda Elysia
 
-Di Lambda Elysia kamu (**Configuration → Environment variables**), tambahkan:
+Di Lambda Elysia, (**Configuration → Environment variables**) atau di **SSM**, tambahkan:
 
 ```
 WS_MANAGEMENT_ENDPOINT = https://{api-id}.execute-api.{region}.amazonaws.com/production
 ```
 
-Ini dipakai di kode `broadcast.ts` yang sudah aku kasih sebelumnya.
+`broadcast.ts` ambil nilai itu untuk jadi access point ke DynamoDB.
 
 ## Bagian 6: Test koneksi manual (sebelum sambung ke React)
 
@@ -139,14 +139,13 @@ Pakai `wscat` buat tes cepat dari terminal Termux kamu:
 ```bash
 npm install -g wscat
 wscat -c wss://{api-id}.execute-api.{region}.amazonaws.com/production
-wscat -c wss://tkiidjhcn9.execute-api.us-east-1.amazonaws.com/production
 # Jika error:
 # error: WebSocket connection to 'wss://{api-id}.execute-api.{region}.amazonaws.com/production' failed: Expected 101 status code
 # Buka masing-masing Lambda Connect & Disconnect:
 ## Configuration → Permissions -> Scroll ke bawah ke "Resource-based policy statements"
 ## Harus ada minimal 1 statement Service: API Gateway Principal: apigateway.amazonaws.com
 ## Jika tidak ada, buka route $connect & $disconnect di API Gateway → klik integration-nya → hapus lalu attach ulang ke Lambda. Cek Apakah policy Statement di lambda di auto-generated.
-# cek config api gateway
+# cek config api gateway (integration type connect & disconnect harus "AWS_PROXY")
 aws apigatewayv2 get-integrations --api-id tkiidjhcn9 --region us-east-1
 ```
 
