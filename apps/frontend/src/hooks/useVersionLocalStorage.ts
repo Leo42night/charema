@@ -9,6 +9,8 @@ export default function useVersionLocalStorage() {
     useEffect(() => {
         // 1. Ambil versi yang saat ini tersimpan di browser user
         const currentVersion = localStorage.getItem(VERSION_CONTROL_KEY);
+        // console.log("currentVersion", currentVersion)
+        // console.log("STORAGE_VERSION", STORAGE_VERSION)
 
         // 2. Jika versi berbeda (atau belum pernah ada/null)
         if (currentVersion !== STORAGE_VERSION) {

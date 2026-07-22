@@ -1,31 +1,40 @@
-// AWS Lambda tidak bisa langsung menggunakan file SQLite, jadi kita buat file baru khusus untuk PostgreSQL yang akan digunakan di Lambda. 
-// File ini akan tetap menggunakan Prisma Client dengan skema PostgreSQL.
 import { PrismaClient } from "../src/generated/prisma-pg/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import fs from "fs";
 import path from "path";
 
-// relative ke folder apps/backend
-const certPath = path.join(process.cwd(), "cert/global-bundle.pem");
-// console.log("Looking for cert at:", certPath);
-// console.log("File exists:", fs.existsSync(certPath));
-// console.log("DATABASE_URL:", process.env.DATABASE_URL!)
+const certPath = path.join(process.cwd(), "cert/server-ca.pem");
+console.log("File exists:", fs.existsSync(certPath));
 
-const ca = fs.readFileSync(certPath).toString();
+const password = encodeURIComponent(process.env.DB_PASS!);
+const useSsl = process.env.DB_USE_SSL === "true";
 
-// Kita buat singleton Prisma Client agar dipanggil ketika SSM sudah siap, dan tidak dibuat ulang setiap kali handler dipanggil (karena Lambda bisa reuse container).
+const host = useSsl ? process.env.DB_HOST : "localhost";
+const socketParam = useSsl
+  ? ""
+  : `?host=/cloudsql/${process.env.PROJECT_ID}:us-central1:${process.env.INSTANCE_ID}`;
+
+const url = `postgresql://postgres:${password}@${host}:5432/postgres${socketParam}`;
+// console.log("DB_URL (clean pw)", url);
+
 let prisma: PrismaClient;
 
 export const getPrisma = () => {
   if (!prisma) {
+    const config: ConstructorParameters<typeof PrismaPg>[0] = {
+      connectionString: url,
+    };
+
+    if (useSsl) {
+      const certPath = path.join(process.cwd(), "cert/server-ca.pem");
+      config.ssl = {
+        ca: fs.readFileSync(certPath).toString(),
+        rejectUnauthorized: true,
+      };
+    }
+
     prisma = new PrismaClient({
-      adapter: new PrismaPg({
-        connectionString: process.env.DATABASE_URL!,
-        ssl: {
-          ca, // lokasi file sertifikat SSL untuk RDS, ketika build akan relatif ke folder /apps/backend/dist-lambda/
-          rejectUnauthorized: true,
-        }
-      }),
+      adapter: new PrismaPg(config),
     });
   }
 

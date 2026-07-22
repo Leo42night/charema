@@ -14,6 +14,7 @@ export interface DbClient {
       create: { user_key: number, score_cf: number; score_chat: number, message?: string };
     }) => Promise<any>;
     findMany: () => Promise<any[]>;
+    findFirst: (args: { where: any }) => Promise<any>;
     aggregate: (args: any) => Promise<any>;
   };
   achievement: { // camelCase
@@ -35,6 +36,19 @@ export interface DbClient {
   };
   // Menggunakan 'any' pada query untuk bypass validasi strict Prisma internal
   $queryRaw: <T = any>(query: any, ...values: any[]) => Promise<T>;
+  user: {
+    findMany: () => Promise<any[]>;
+    findFirst: (args: { where: { user_key: number } }) => Promise<any>;
+    upsert: (args: {
+      where: { user_key: number }; // Key unik untuk pencarian data
+      update: { name: string, picture: string }; // data yang dapat terupdate
+      create: { user_key: number, name: string, picture: string }
+    }) => Promise<any>;
+  }
+  winner: {
+    create: (args: { data: any }) => Promise<any>;
+    findFirst: () => Promise<any>;
+  }
 }
 
 export type NimToUser = {

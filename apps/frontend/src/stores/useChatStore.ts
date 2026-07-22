@@ -18,6 +18,7 @@ interface ChatStore {
   /** null = tidak ada toast */
   toastTag: string | null;
   canSave: boolean;
+  loadSaveTag: boolean;
 
   // ── Chat ────────────────────────────────────────────────────────────────────
   setFeedback: (
@@ -37,6 +38,7 @@ interface ChatStore {
   dismissSave: () => void;
   dismissToast: () => void;
   clearMessages: () => void;
+  setLoadSaveTag: (status: boolean) => void;
 }
 
 export const useChatStore = create<ChatStore>()(
@@ -46,6 +48,7 @@ export const useChatStore = create<ChatStore>()(
       tags: [],
       toastTag: null,
       canSave: false,
+      loadSaveTag: false,
 
       // ── Chat ────────────────────────────────────────────────────────────────
       setMessages: (updater) =>
@@ -101,6 +104,7 @@ export const useChatStore = create<ChatStore>()(
       dismissSave: () => set({ canSave: false }),
       dismissToast: () => set({ toastTag: null }),
       clearMessages: () => set({ messages: [], tags: [], canSave: false, toastTag: null }),
+      setLoadSaveTag: (status) => set({ loadSaveTag: status })
     }),
     {
       name: "chat-store",

@@ -1,5 +1,5 @@
-import { Elysia } from "elysia";
-import { userToNim } from "shared";
+import { Elysia, t } from "elysia";
+import { TARGET_KRITIK, TARGET_TAGS, userToNim } from "shared";
 import user_cf_scores from "../data/user_cf_scores.json";
 import type { DbClient } from "../types"; // Sesuaikan dengan lokasi tipe DbClient Anda
 const recommendations = user_cf_scores as Record<string, Record<string, number>>;
@@ -28,11 +28,16 @@ export const dataRoutes = (getPrisma: () => DbClient) =>
                 if (request.method === "OPTIONS") return;
 
                 const origin = request.headers.get("origin");
-                const frontendUrl = process.env.FRONTEND_URL!;
+                const frontendUrlsRaw = process.env.FRONTEND_URLS || "http://localhost:5173,http://localhost:4173";
+                if (frontendUrlsRaw) {
+                    const allowedOrigins: string[] = frontendUrlsRaw.split(",");
+                    if (allowedOrigins.includes(origin ?? '')) {
+                        // Logic jika origin diizinkan (misal untuk CORS atau bypass)
+                        return;
+                    }
+                }
                 const key = url.searchParams.get("key");
 
-                // Jika request datang dari Frontend resmi, izinkan lewat
-                if (origin === frontendUrl) return;
 
                 // Validasi API Key untuk request non-frontend (misal: Insomnia, Postman, service lain)
                 const apiKey = process.env.API_KEY!;
@@ -96,15 +101,29 @@ export const dataRoutes = (getPrisma: () => DbClient) =>
 
                     // n feedback submitted
                     responseData['n_feedback'] = await getPrisma().feedback.count();
+
+                    // winner
+                    const winner = await getPrisma().winner.findFirst();
+                    if (winner) {
+                        const dataUser = await getPrisma().user.findFirst({ where: { user_key: winner.user_key } });
+                        responseData['winner'] = {
+                            user_key: winner.user_key,
+                            created_at: winner.created_at,
+                            name: dataUser?.name,
+                            picture: dataUser?.picture
+                        }
+                    }
+
                     // top 10 user achievement: n tags achieved
-                    const isProduction = !!process.env.AWS_LAMBDA_FUNCTION_NAME;
+                    const isProduction = process.env.NODE_ENV !== 'dev';
 
                     const query = `
                         SELECT 
                         "user_key", 
-                        json${isProduction ? "b" : ""}_array_length("tags") AS "total_tags"
+                        ${isProduction ? "jsonb_array_length" : "json_array_length"}("tags") AS "total_tags"
                         FROM "Achievement"
-                        ORDER BY "total_tags" DESC
+                        WHERE "user_key" != 4404
+                        ORDER BY "total_tags" DESC, "created_at" ASC
                         LIMIT 10;
                     `;
 
@@ -112,15 +131,24 @@ export const dataRoutes = (getPrisma: () => DbClient) =>
                         { user_key: number; total_tags: number }[]
                     >(PrismaNamespace.raw(query));
 
-                    const topUsersWithNim = topUsers.map(user => {
-                        // Ambil nim berdasarkan user_key (convert ke string karena key JSON adalah string)
-                        const nim = userToNim[user.user_key] || "TIDAK DIKETAHUI";
+                    const topUsersWithNim = await Promise.all(
+                        topUsers.map(async (user) => {
+                            const totalKritik = await getPrisma().feedback.count({
+                                where: { user_key: user.user_key },
+                            });
 
-                        return {
-                            nim: nim,
-                            total_tags: Number(user.total_tags) // Memastikan tipe data berupa number
-                        };
-                    });
+                            const userScore = await getPrisma().score.findFirst({
+                                where: { user_key: user.user_key },
+                            });
+
+                            return {
+                                user_key: user.user_key,
+                                total_tags: Number(user.total_tags), // Memastikan tipe data berupa number
+                                total_kritik: totalKritik, // jumlah kritik dibuat
+                                is_scoring: !!userScore, // punya riwayat rating
+                            };
+                        })
+                    );
 
                     // Output responseData siap dikirim ke frontend
                     responseData['top_10_users'] = topUsersWithNim;
@@ -162,11 +190,88 @@ export const dataRoutes = (getPrisma: () => DbClient) =>
                     return { data, message: "Score retrieved successfully" };
                 })
                 .get("/achievement", async () => {
-                    const data = await getPrisma().achievement.findMany();
-                    return { data, message: "Achievement retrieved successfully" };
+                    try {
+                        const data = await getPrisma().achievement.findMany();
+                        return { data, message: "Achievement retrieved successfully" };
+                    } catch (err: any) {
+                        console.error("DB ERROR:", err.message);
+                        console.error("CODE:", err.code);
+                        console.error(err);
+                        throw err;
+                    }
                 })
                 .get("/feedback", async () => {
                     const data = await getPrisma().feedback.findMany();
                     return { data, message: "Feedback retrieved successfully" };
                 })
+                // untuk accordion leaderboard
+                .get("/user/:user_key", async ({ params, set }) => {
+                    const userKey = params.user_key;
+
+                    const data = await getPrisma().user.findFirst({
+                        where: { user_key: userKey },
+                    });
+
+                    if (!data) {
+                        set.status = 404;
+                        return { data: null, message: "User tidak ditemukan" };
+                    }
+
+                    return { data, message: "User retrieved successfully" };
+                }, {
+                    params: t.Object({
+                        user_key: t.Number()
+                    })
+                })
+                // DEBUG: lihat di browser
+                .get("/winner/:user_key", async ({ params, set }) => {
+                    const user_key = params.user_key;
+
+                    const tags = (await getPrisma().achievement.findUnique({
+                        where: { user_key },
+                    }))?.tags;
+
+                    if (!tags) {
+                        set.status = 404;
+                        return { data: null, message: "tidak ada riwayat" };
+                    }
+
+                    // jika tags length sudah 20, simpan ke winner
+                    let res_data: {
+                        is_win: boolean;
+                        n_tags: number;
+                        feedback?: number;
+                        score?: boolean;
+                    } = {
+                        is_win: false,
+                        n_tags: tags.length
+                    };
+                    if (tags.length >= TARGET_TAGS) {
+                        // periksa jika score ada, feedback >= 4
+                        const feedback = await getPrisma().feedback.count({ where: { user_key } });
+                        res_data.feedback = feedback;
+                        if (feedback >= TARGET_KRITIK) {
+                            const score = await getPrisma().score.findFirst({ where: { user_key } });
+                            res_data.score = !!score;
+                            if (score !== null) {
+                                res_data.is_win = true;
+                            }
+                        }
+                    }
+                    return { data: res_data };
+
+                }, {
+                    params: t.Object({
+                        user_key: t.Number()
+                    })
+                })
+                // DEBUG: cek env (lihat di browser)
+                .get("/env", async () => {
+                    // Tambahkan di baris awal src/server-pg.ts
+                    console.log("=== CHECKING LOADED ENV ===");
+                    console.log("NODE_ENV:", process.env.NODE_ENV);
+                    console.log("FRONTEND_URLS:", process.env.FRONTEND_URLS);
+                    console.log("===========================");
+                })
+
         );

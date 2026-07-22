@@ -12,6 +12,7 @@ interface UIState {
   selectedMK: MataKuliah[];
   activeMenu: string;
   feedbackInput: string;
+  showWinnerModal: boolean;
 
   // Actions (Fungsi Pengubah State)
   setMenuOpen: (open: boolean) => void;
@@ -23,6 +24,7 @@ interface UIState {
   setActiveMenu: (menu: string) => void;
   setFeedbackInput: (input: string) => void;
   resetChat: (chatPresenter: any) => void;
+  setShowWinnerModal: (statusWinner: boolean) => void;
 }
 
 // 2. Buat store dengan Zustand
@@ -36,6 +38,7 @@ export const useUIStore = create<UIState>((set) => ({
   selectedMK: [],
   activeMenu: "Home",
   feedbackInput: "",
+  showWinnerModal: false,
 
   // Implementasi Fungsi
   setMenuOpen: (open) => set({ menuOpen: open }),
@@ -48,14 +51,14 @@ export const useUIStore = create<UIState>((set) => ({
     set((state) => ({
       msgCount: typeof count === "function" ? count(state.msgCount) : count
     })),
-  setSelectedMK: (selectedMK) => set({selectedMK}),
+  setSelectedMK: (selectedMK) => set({ selectedMK }),
 
   setActiveMenu: (menu) => set({ activeMenu: menu }),
   setFeedbackInput: (input) => set({ feedbackInput: input }),
 
   resetChat: (chatPresenter) => {
     chatPresenter.clearMessages();
-    set({selectedMK: []});
+    set({ selectedMK: [] });
     setTimeout(() => {
       chatPresenter.setMessages([{
         id: Date.now() + 1,
@@ -66,4 +69,6 @@ export const useUIStore = create<UIState>((set) => ({
       }]);
     }, 300);
   },
+
+  setShowWinnerModal: (statusWinner) => set({ showWinnerModal: statusWinner })
 }));

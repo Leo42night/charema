@@ -7,6 +7,7 @@ import { useChatStore } from "./useChatStore";
 interface RatingData {
     score_cf: number;
     score_chat: number;
+    message?: string;
 }
 
 export interface AuthState {
@@ -16,18 +17,20 @@ export interface AuthState {
     selectedMatkulItems: number[]; // di modal select matkul 
     rating: RatingData | null;
     feedbackNumber: number; // ambil dari database backend
+    hasTour: boolean; // reset ketika cache dihapus
 
     setAuth: (user: UserData, token: string) => void;
     setRecScores: (scores: [string, number][] | null) => void;
     setSelectedMatkulItems: (items: number[]) => void;
     setFeedbackNumber: (updater: number | ((prev: number) => number)) => void;
     setRating: (rating: RatingData) => void;
+    setHasTour: (hasTour: boolean) => void;
     logout: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
     // cache to localhost
-    persist(
+    persist<AuthState>(
         (set) => ({
             user: null,
             token: null,
@@ -35,6 +38,7 @@ export const useAuthStore = create<AuthState>()(
             selectedMatkulItems: [], // riwayat matkul yang di select
             rating: null,
             feedbackNumber: 0,
+            hasTour: false,
             setAuth: (user, token) => set({ user, token }),
             setRecScores: (scores) => set({ recScores: scores }),
             setSelectedMatkulItems: (selectedMatkulItems) => set({ selectedMatkulItems }),
@@ -46,6 +50,7 @@ export const useAuthStore = create<AuthState>()(
                 })),
 
             setRating: (rating) => set({ rating }),
+            setHasTour: (hasTour) => set({ hasTour }),
 
 
             logout: () => {

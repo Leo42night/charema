@@ -1,11 +1,11 @@
 import { Elysia, t } from "elysia";
 import { cookie } from "@elysiajs/cookie";
 import { jwt } from "@elysiajs/jwt";
-import { type ApiResponse, userToNim } from "shared";
+import { type ApiResponse, TARGET_KRITIK, TARGET_TAGS } from "shared";
 import user_cf_scores from "./data/user_cf_scores.json";
 import type { DbClient } from "./types";
 import { dataRoutes } from "./routes/data.route";
-import { broadcastLeaderboard } from "./ws/broadcast";
+// import { broadcastLeaderboard } from "./ws/broadcast";
 
 const recommendations = user_cf_scores as Record<string, Record<string, number>>;
 
@@ -35,7 +35,7 @@ export const createApp = (getPrisma: () => DbClient) => {
         await prisma.$queryRaw`SELECT 1`;
       } catch (error) {
         dbStatus = "error";
-        dbMessage = "database connection failed";
+        dbMessage = error instanceof Error ? error.message : "database connection failed";
       }
 
       const responseTime = `${Date.now() - start}ms`; // 3. Hitung total durasi
@@ -77,6 +77,22 @@ export const createApp = (getPrisma: () => DbClient) => {
 
       // 3. gunakan user_cf_scores.json, ambil rekomendasi berdasarkan user_key (jika ada)
       if (user_data.user_key) {
+        // simpan image & name
+        await getPrisma().user.upsert({
+          where: {
+            user_key: user_data.user_key
+          },
+          update: {
+            name: user_data.name,
+            picture: user_data.picture
+          },
+          create: {
+            user_key: user_data.user_key,
+            name: user_data.name,
+            picture: user_data.picture
+          }
+        });
+
         responseData['recommendations'] = recommendations[user_data.user_key.toString()] || {};
 
         // 4.a. number feedback, ambil feedback by user_key (opsi 1)
@@ -102,6 +118,13 @@ export const createApp = (getPrisma: () => DbClient) => {
             user_key: user_data.user_key,
           },
         }))?.tags;
+
+        // 7. Ambil score
+        responseData['user_score'] = await getPrisma().score.findFirst({
+          where: {
+            user_key: user_data.user_key
+          }
+        });
       } else if (user_data.email) {
         // 4.b. number feedback, ambil feedback by email (opsi 2, bukan target)
         responseData['user_feedback_number'] = await getPrisma().feedback.count({
@@ -204,13 +227,15 @@ export const createApp = (getPrisma: () => DbClient) => {
         let returnData: {
           message: string;
           broadcast: any;
+          winner: boolean;
         } = {
           message: "Score & Tags saved successfully",
-          broadcast: "Sukses"
+          broadcast: "Sukses",
+          winner: false
         };
 
         try {
-          await broadcastLeaderboard(getPrisma, userToNim);
+          // await broadcastLeaderboard(getPrisma, userToNim);
         } catch (err: any) {
           const errorDetails = {
             name: err?.name || "UnknownError",
@@ -336,6 +361,61 @@ export const createApp = (getPrisma: () => DbClient) => {
         }),
       }
     )
+    // panggil (check dulu di fe, tag==20, feedback==4, rating!=null) 
+    .post("/winner/:user_key", async ({ params, set }) => {
+      // Parsing user_key ke integer jika tipe di DB adalah Int
+      const user_key = Number(params.user_key);
+
+      // cek winner belum ada
+      const n_winner = await getPrisma().winner.findFirst();
+      if (n_winner) {
+        return { data: null, message: "Winner sudah ada" };
+      }
+
+      const achievement = await getPrisma().achievement.findUnique({
+        where: { user_key },
+      });
+
+      if (!achievement || !achievement.tags) {
+        set.status = 404;
+        return { data: null, message: "User tidak ditemukan" };
+      }
+
+      const tags = achievement.tags;
+
+      let res_data: {
+        is_win: boolean;
+        n_tags: number;
+        feedback?: number;
+        score?: boolean;
+      } = {
+        is_win: false,
+        n_tags: tags.length,
+      };
+
+      if (tags.length >= TARGET_TAGS) {
+        const feedback = await getPrisma().feedback.count({ where: { user_key } });
+        res_data.feedback = feedback;
+
+        if (feedback >= TARGET_KRITIK) {
+          const score = await getPrisma().score.findFirst({ where: { user_key } });
+          res_data.score = !!score;
+
+          if (score !== null) {
+            //  Gunakan UPSERT agar tidak crash jika user sudah pernah klaim
+            await getPrisma().winner.create({ data: { user_key } });
+
+            res_data.is_win = true;
+          }
+        }
+      }
+
+      return { data: res_data };
+    }, {
+      params: t.Object({
+        user_key: t.Number()
+      })
+    });
 
   return app;
 };

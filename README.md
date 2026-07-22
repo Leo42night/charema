@@ -20,56 +20,24 @@ Proyek Monorepo dikelola menggunakan [BunJs](https://bun.com/), kode dengan [Typ
 - Deployment FE ke AWS S3+Cloudflare (koneksi Domain) & BE ke AWS Lambda.
 - CI/CD: [AWS CLI](https://aws.amazon.com/cli/).
 
-## Needed to Dev
-- [Google Colab for training Model Chatbot](https://colab.research.google.com/drive/1tL2IW8GLvUMuqvCRzmAPCy3xBHI2mI1K?usp=sharing). Karena Tensorflow cukup berat jika diinstall di local, jadi saya pakai Google Colab dengan runtime CPU (karena dataset ringan & cuma pakai layer GlobalAveragePooling1D)
-- [Google Colab for training Model Rekomendasi NCF](https://colab.research.google.com/drive/1br3PCcA9Y2mHORYiSmLJ1x3L9WRsPNLl?usp=sharing)
-- Backend: `user_cf_scores.json` (hasil model rekomendasi), `user_to_nim.json` (statistik user data[score,prodia-ngkatan], check email non target) 
-- Frontend: 
-    - `item_matkul.json` (skema item untuk dapat detail matkul[nama, kode, sks, semester, dosen] by H11, H10, or same), 
-    - `nim_to_user.json` (ambil user key untuk kirim ke BE setelah dapat email pas login)
-    - `category.json` (matkul yang tidak ada item_id (only by category_id) & map category_id -> name)
+## Setup
+- [Google Colab for training Model Chatbot](#) (Akan dishare setelah ada pemenang reward). Karena Tensorflow cukup berat jika diinstall di local, jadi saya pakai Google Colab dengan runtime CPU (karena dataset ringan & cuma pakai layer GlobalAveragePooling1D)
+    - Extract `tfjs_saved_model.zip` ke folder `dev/` untuk di test di index.html 
+    - Jika prediction berhasil. run `cd apps/backend && bun dev/encrypt-json.ts` (buat veri ter enkripsi)
+    - masukkan file `model.json` dan `group*.bin` ke dalam `frontend/public/tfjs_saved_model`.
+- [Google Colab for training Model Rekomendasi NCF](https://colab.research.google.com/drive/1br3PCcA9Y2mHORYiSmLJ1x3L9WRsPNLl)
+    - `backend/src/data/user_cf_scores.json` (hasil model rekomendasi), 
+    - `frontend/src/data/`: 
+        - `item_matkul.json` (skema item untuk dapat detail matkul[nama, kode, sks, semester, dosen] by H11, H10, or same), 
+        - `nim_to_user.json` (ambil user key untuk kirim ke BE setelah dapat email pas login)
+        - `category.json` (matkul yang tidak ada item_id (only by category_id) & map category_id -> name)
+        - `rekap.json` (untuk halaman about)
+    - `user_to_nim.json` (statistik user data[score,prodi-angkatan], check email non target) 
 
-## Log Important Commit
-- [Deploy Websocket AWS (API Gateway+Lambda)](https://github.com/Leo42night/charema/commit/adaf47486cf1fbd2f588be2d60a36f6db2cc22d5)
-
-## Build Process
-Jika setup sudah selesai tapi ada perubahan berkala di kode. [Detail cara build ke AWS](https://github.com/Leo42night/ppwl-caps)
-### Frontend Build
-```sh
-cd apps/frontend
-bun run build
-aws s3 sync dist/ s3://www.charema.space/ --cache-control "max-age=31536000" --exclude "index.html" --delete
-aws s3 cp dist/index.html s3://www.charema.space/index.html   --cache-control "no-cache, no-store"
-```
-
-### Backend Build
-```sh
-cd apps/backend
-
-# -- DB Production (AWS RDS Postgres) [-- !DB AKAN DI RESET, BACKUP DULU DATA JIKA ADA! --]
-bun --env-file=.env.production prisma db push --force-reset
-bun prisma generate --schema prisma/schema-pg.prisma
-
-# build
-bun build src/lambda.ts --outdir dist-lambda --target node --format cjs --external prisma
-
-# copy Generated Prisma Client (postgres), dependency, & certificate
-## Versi Windows CMD
-xcopy src\generated\prisma-pg dist-lambda\generated\prisma-pg /i /e /y
-### -- masukkan SSH ke folder dist-lambda/ -- 
-if not exist "dist-lambda\cert" mkdir "dist-lambda\cert" && xcopy /y "cert\global-bundle.pem" "dist-lambda\cert\"
-```
-```sh
-# 4. Zipping & UP ke Lambda
-### Zipping untuk upload (10MB -> 3.8MB)
-cd dist-lambda && powershell -NoProfile -Command "Compress-Archive -Path * -DestinationPath ../lambda-backend.zip -Force" && cd ..
-aws lambda update-function-code --function-name remaku-be --zip-file fileb://lambda-backend.zip
-## opsional: add environment
-aws lambda update-function-configuration --function-name remaku-be --environment "Variables={NODE_ENV=production}"
-```
+## Previous Version
+- [Deploy AWS](https://github.com/Leo42night/charema/commit/adaf47486cf1fbd2f588be2d60a36f6db2cc22d5)
 
 ## Tools
-- Jika pakai AWS CLI, tanyakan LLM untuk script lihat & ubah konfigurasi, lebih cepat daripada harus manual buka web. 
 ```sh
 # hapus folder node_modules, untuk reset skema monorepo agar distribusi package tersentralisasi
 FOR /d /r . %d in (node_modules) DO @IF EXIST "%d" rd /s /q "%d"

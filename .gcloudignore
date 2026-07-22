@@ -1,0 +1,11 @@
+# Mengabaikan folder Git dan metadata standar cloud
+.git/
+.gitignore
+
+# Mengabaikan dependencies lokal agar proses upload cepat
+**/node_modules/
+.bun/
+
+# KECUALIKAN file .env ini agar gcloud MAU mengunggahnya ke server Google Cloud Build
+!apps/backend/.env
+!apps/backend/.env.production

@@ -1,6 +1,48 @@
 import { STORAGE_VERSION } from '@/constants';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useUIStore } from '@/stores/useUIStore';
+import { Star } from 'lucide-react';
+import { useState } from "react";
+
+function ConfirmResetModal({
+    open,
+    onConfirm,
+    onCancel,
+}: {
+    open: boolean;
+    onConfirm: () => void;
+    onCancel: () => void;
+}) {
+    if (!open) return null;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div className="w-full max-w-xs p-4 border-2 border-black dark:border-neo-yellow bg-white dark:bg-zinc-800 shadow-[4px_4px_0px_0px_#000] dark:shadow-[4px_4px_0px_0px_#facc15] flex flex-col gap-3">
+                <span className="text-sm font-black text-black dark:text-white">
+                    Reset Chat?
+                </span>
+                <span className="text-xs font-medium text-neutral-600 dark:text-neutral-400">
+                    Chat dan unlocked tags akan ter reset. Tindakan ini tidak bisa dibatalkan.
+                </span>
+
+                <div className="flex gap-2 mt-2">
+                    <button
+                        onClick={onCancel}
+                        className="neo-btn flex-1 py-2 bg-white dark:bg-zinc-700 text-xxs text-black dark:text-white shadow-neo-sm"
+                    >
+                        Batal
+                    </button>
+                    <button
+                        onClick={onConfirm}
+                        className="neo-btn flex-1 py-2 bg-red-500 text-xxs text-white shadow-neo-sm"
+                    >
+                        Ya, Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
 
 const SidebarBtn = ({
     isNavbarVisible,
@@ -18,8 +60,11 @@ const SidebarBtn = ({
     className?: string;
 }) => {
     const user = useAuthStore((state) => state.user);
+    const rating = useAuthStore((s) => s.rating);
     const msgCount = useUIStore((s) => s.msgCount);
     const resetChat = useUIStore((s) => s.resetChat);
+
+    const [showResetConfirm, setShowResetConfirm] = useState(false);
 
     return (
         <div className={`${className} p-3 dark:border-neo-yellow bg-white dark:bg-zinc-900`}>
@@ -33,10 +78,7 @@ const SidebarBtn = ({
             {/* rm: px-3 */}
             <div className="grid grid-cols-2 gap-2">
                 <button
-                    onClick={() => {
-                        resetChat(chatPresenter);
-                        // setMenuOpen(false); // Tutup drawer setelah reset
-                    }}
+                    onClick={() => setShowResetConfirm(true)}
                     className="neo-btn py-2 bg-neo-yellow text-xxs text-black shadow-neo-sm"
                 >
                     Reset Chat
@@ -90,16 +132,33 @@ const SidebarBtn = ({
                     <button
                         onClick={() => setModalScore(true)}
                         disabled={!isOnline}
-                        className={`mb-3 w-full font-mono text-xxs font-black uppercase tracking-tight py-2 text-center border-2 border-black transition-all
+                        className={`relative mb-3 w-full font-mono text-xxs font-black uppercase tracking-tight py-2 text-center border-2 border-black transition-all
                             ${!isOnline
                                 ? "bg-gray-400 text-gray-700 cursor-not-allowed shadow-none translate-x-px translate-y-px"
                                 : "bg-neo-purple text-white shadow-neo-yellow hover:bg-opacity-90 active:shadow-none active:translate-x-0.5 active:translate-y-0.5"
                             }`}
                     >
                         {!isOnline ? "SYS_OFFLINE" : "BERI_RATING"}
+
+                        <Star
+                            className={`absolute -bottom-2 left-1/2 -translate-x-1/2 w-3 h-3 ${rating !== null
+                                ? "fill-neo-yellow stroke-black"
+                                : "fill-white stroke-black"
+                                }`}
+                        />
                     </button>
                 )}
             </div>
+
+            <ConfirmResetModal
+                open={showResetConfirm}
+                onConfirm={() => {
+                    resetChat(chatPresenter);
+                    setShowResetConfirm(false);
+                    // setMenuOpen(false); // Tutup drawer setelah reset
+                }}
+                onCancel={() => setShowResetConfirm(false)}
+            />
         </div>
     )
 }

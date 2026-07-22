@@ -51,3 +51,16 @@ model Feedback {
   feedback    String
   created_at  DateTime   @updatedAt // jika update, maka berubah
 }
+
+// ditampilkan di leaderboard
+model User {
+  user_key Int @id
+  name       String // setelah login
+  picture    String // url gambar
+}
+
+// simpan data pemenang, jadi jika tag ter reset tidak masalah
+model Winner {
+  user_key Int @id
+  created_at  DateTime   @default(now()) // interaksi pertama (walaupun tidak langsung simpan)
+}

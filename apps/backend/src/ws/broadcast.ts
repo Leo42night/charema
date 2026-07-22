@@ -51,6 +51,7 @@ export async function broadcastLeaderboard(getPrisma: () => DbClient, userToNim:
     });
 
     // Urutkan dari tags terbanyak (DESC) dan ambil 10 besar
+    // urutkat juga berdasarkan created_at (ASC)
     const top10Users = topUsers
         .sort((a, b) => b.total_tags - a.total_tags)
         .slice(0, 10);

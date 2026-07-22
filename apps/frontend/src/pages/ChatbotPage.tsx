@@ -18,24 +18,81 @@ import { useUIStore } from "@/stores/useUIStore";
 import TourGuide from "@/components/TourGuide";
 import RekomendasiResult from "@/components/chatbot/RekomendasiMsg";
 import { elysiaErr } from "@/lib/elysiaErr";
+import { useWinnerCheck } from "@/hooks/useWinnerCheck";
+
+function WinnerModal({
+    open,
+    onClose,
+    waNumber,
+}: {
+    open: boolean;
+    onClose: () => void;
+    waNumber: string;
+}) {
+    if (!open) return null;
+
+    const waMessage = encodeURIComponent(
+        "Halo, saya sudah menyelesaikan misi Akademik Bot dan ingin klaim reward 🎉"
+    );
+    const waLink = `https://wa.me/${waNumber}?text=${waMessage}`;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+            <div className="w-full max-w-sm p-5 border-2 border-black dark:border-neo-yellow bg-white dark:bg-zinc-800 shadow-[4px_4px_0px_0px_#000] dark:shadow-[4px_4px_0px_0px_#facc15] flex flex-col gap-3 text-center">
+                <span className="text-3xl">🏆</span>
+
+                <span className="text-base font-black text-black dark:text-white">
+                    Selamat!
+                </span>
+
+                <span className="text-xs font-medium text-neutral-600 dark:text-neutral-300">
+                    Kamu telah berhasil menyelesaikan misi dan berhak mendapatkan reward Rp100k.
+                    Silakan hubungi nomor WhatsApp di bawah ini untuk klaim hadiahmu.
+                </span>
+
+                <a
+                    href={waLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="neo-btn mt-2 py-2 bg-green-500 text-white text-xs font-black uppercase border-2 border-black shadow-neo-sm hover:bg-opacity-90 active:shadow-none active:translate-x-0.5 active:translate-y-0.5"
+                >
+                    Hubungi via WhatsApp
+                </a>
+
+                <button
+                    onClick={onClose}
+                    className="text-[11px] font-bold text-neutral-500 dark:text-neutral-400 underline mt-1"
+                >
+                    Tutup
+                </button>
+            </div>
+        </div>
+    );
+}
 
 export default function ChatbotPage() {
     // store state
     const user = useAuthStore((state) => state.user);
+    const hasTour = useAuthStore((state) => state.hasTour);
+    const setHasTour = useAuthStore((state) => state.setHasTour);
     const toastTag = useChatStore((s) => s.toastTag);
     const messages = useChatStore((s) => s.messages);
     const setSelectedMatkulItems = useAuthStore((state) => state.setSelectedMatkulItems);
     const setMenuOpen = useUIStore((s) => s.setMenuOpen);
     const dismissToast = useChatStore((s) => s.dismissToast);
     const setMsgCount = useUIStore((s) => s.setMsgCount);
+    const showWinnerModal = useUIStore((s) => s.showWinnerModal);
+    const setShowWinnerModal = useUIStore((s) => s.setShowWinnerModal);
 
     // logic presenter
     const { setMessages, isLoading, sendMessage } = useChatPresenter();
     const { setInputFocus, isNavbarVisible, setNavbarVisible } = useUI();
+    useWinnerCheck();
 
     const hasMounted = useRef(false);
     const [startTour, setStartTour] = useState(false);
     const [loaded, setLoaded] = useState(false);
+    const [hydrated, setHydrated] = useState(useAuthStore.persist.hasHydrated());
 
     const [input, setInput] = useState("");
     const [modalOpen, setModalOpen] = useState(false);
@@ -44,11 +101,32 @@ export default function ChatbotPage() {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+
+    // Tunggu localStorage selesai di-rehydrate
+    useEffect(() => {
+        const unsub = useAuthStore.persist.onFinishHydration(() => setHydrated(true));
+        // Kalau ternyata sudah hydrated duluan sebelum listener terpasang
+        if (useAuthStore.persist.hasHydrated()) setHydrated(true);
+        return unsub;
+    }, []);
+
     // ── Initial greeting ───────────────────────────────────────────────────────
     useEffect(() => {
+        if (!hydrated) return; // tunggu sampai state auth benar-benar sinkron dari localStorage
+
+        // Tour guide — hanya jalan sekali seumur hidup (sampai localStorage dihapus)
+        if (!hasTour) {
+            setStartTour(true);
+        }
+
         if (hasMounted.current) return;
         hasMounted.current = true;
         setLoaded(true);
+
+        // tour guide
+        if (!hasTour) {
+            setStartTour(true);
+        }
 
         if (messages.length > 0) return;
         setTimeout(() => {
@@ -63,7 +141,7 @@ export default function ChatbotPage() {
                 },
             ]);
         }, 400);
-    }, []);
+    }, [hydrated]);
 
     // ── Scroll on new messages ─────────────────────────────────────────────────
     useEffect(() => {
@@ -260,7 +338,10 @@ export default function ChatbotPage() {
                     start={startTour}
                     setStartTour={setStartTour}
                     onOpenDrawer={() => setMenuOpen(true)}
-                    onTourEnd={() => setStartTour(false)}
+                    onTourEnd={() => {
+                        setStartTour(false);
+                        setHasTour(true);
+                    }}
                     onCloseDrawer={() => setMenuOpen(false)}
                 />
             )}
@@ -275,6 +356,12 @@ export default function ChatbotPage() {
                     onClose={() => setModalOpen(false)}
                 />
             )}
+
+            <WinnerModal
+                open={showWinnerModal}
+                onClose={() => setShowWinnerModal(false)}
+                waNumber="6281234567890" // ganti dengan nomor WA sebenarnya, format internasional tanpa "+" atau "0" di depan
+            />
         </div>
     );
 }

@@ -1,5 +1,5 @@
 import { createApp } from "./index";
-import { getPrisma, dbUrl } from "../prisma/db"; // LibSQL
+import { getPrisma } from "../prisma/dbPostgres"; // PostgreSQL
 import cors from "@elysiajs/cors";
 import { swagger } from "@elysiajs/swagger";
 
@@ -12,8 +12,7 @@ app
     allowedHeaders: ["Content-Type", "Authorization"],
   }))
   .use(swagger())
-  .listen(3000);
+  .listen(process.env.PORT || 3000);
 
 console.log("🦊 Backend (local)  → http://localhost:3000");
 console.log("🦊 FRONTEND_URLS →", process.env.FRONTEND_URLS); // data akses pakai env
-console.log("🦊 DATABASE_URL →", dbUrl);

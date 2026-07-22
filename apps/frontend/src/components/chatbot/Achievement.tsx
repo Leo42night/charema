@@ -1,22 +1,15 @@
 // src/components/chatbot/Achievement.tsx
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { AlertCircle, Trophy, Star, Zap, Flame, Save, Loader } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"; // Sesuaikan path instalasi shadcn Anda
+import { Trophy, Star, Zap, Flame, Save, Loader } from "lucide-react";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useChatStore } from "@/stores/useChatStore";
 import axios from "axios";
 import { BACKEND_URL } from "@/constants";
 import { elysiaErr } from "@/lib/elysiaErr";
 import { toast } from "sonner";
-
-const TOTAL_TAGS = 8;
-const isMobile = () => window.innerWidth < 640;
+import TooltipAchiev from "../TooltipAchiev";
+import { TARGET_TAGS } from "shared";
 
 interface AchievementProps {
   isDesktop: boolean;
@@ -30,41 +23,42 @@ const Achievement: React.FC<AchievementProps> = ({ isDesktop, isOnline }) => {
   const tags = useChatStore((s) => s.tags);
   const canSave = useChatStore((s) => s.canSave);
   const dismissSave = useChatStore((s) => s.dismissSave);
-  const [percentageAchieved, setPercentageAchieved] = useState<number>(0);
-  const [loading, setLoading] = useState(false);
-  const [open, setOpen] = useState(false);
+  const loadSaveTag = useChatStore((s) => s.loadSaveTag);
+  const setLoadSaveTag = useChatStore((s) => s.setLoadSaveTag);
 
-  const tooltipText = "Selesaikan achievement untuk mendapatkan hadiah 100K";
-  const triggerClassName =
-    "cursor-help text-black dark:text-neo-yellow hover:scale-110 active:scale-95 transition-transform p-0.5 rounded focus:outline-none";
+  const [percentageAchieved, setPercentageAchieved] = useState<number>(0);
 
   // update progress tags
   useEffect(() => {
     const newPercentage = Math.min(
-      Math.floor((tags.length / TOTAL_TAGS) * 100),
+      Math.floor((tags.length / TARGET_TAGS) * 100),
       100
     );
     setPercentageAchieved(newPercentage);
   }, [tags]);
 
   const saveUpdateTag = async () => {
-    setLoading(true);
+    setLoadSaveTag(true);
     try {
-      await axios.post(`${BACKEND_URL}/achievement`,
-        { user_key: user?.user_key, tags }, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      }); // Sesuaikan endpoint backend Anda
+      if (user?.user_key !== 4404) {
+        await axios.post(`${BACKEND_URL}/achievement`,
+          { user_key: user?.user_key, tags }, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }); // Sesuaikan endpoint backend Anda
+        toast.success("Unlocked Tags is saved!");
+      } else {
+        toast.info("Akun Public, data tidak akan tersimpan ke database!");
+      }
       // console.log("response.data", response.data);
       dismissSave();
-      toast.success("Unlocked Tags is saved!.");
     } catch (error) {
       elysiaErr(error);
       console.error("Gagal mengambil data statistik:", error);
     } finally {
-      setLoading(false);
+      setLoadSaveTag(false);
     }
   }
 
@@ -78,47 +72,7 @@ const Achievement: React.FC<AchievementProps> = ({ isDesktop, isOnline }) => {
         </div>
 
         {/* Tooltip: Mobile (press) & Desktop (hover)  */}
-        {isMobile() ?
-          <div className="relative">
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setOpen((prev) => !prev);
-              }}
-              className={triggerClassName}
-              aria-label="Informasi Achievement"
-            >
-              <AlertCircle className="w-3.5 h-3.5 stroke-[2.5]" />
-            </button>
-
-            <div
-              className={`absolute right-0 top-full mt-1.5 z-50 p-2 border-2 border-black dark:border-neo-yellow bg-black text-white font-mono font-black uppercase tracking-tight text-center rounded-none shadow-[3px_3px_0_0_#000] dark:shadow-[3px_3px_0_0_oklch(89.5%_0.23_95)]
-                    ${open ? "flex flex-col" : "hidden"}`}
-            >
-              {tooltipText}
-            </div>
-          </div> :
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger
-                className="cursor-help text-black dark:text-neo-yellow hover:scale-110 active:scale-95 transition-transform p-0.5 rounded focus:outline-none"
-                aria-label="Informasi Achievement"
-              >
-                <AlertCircle className="w-3.5 h-3.5 stroke-[2.5]" />
-              </TooltipTrigger>
-
-              {/* Konten Tooltip Bergaya Neo-Brutalisme */}
-              <TooltipContent
-                side="top"
-                align="end"
-                className="bg-black text-white font-mono font-black uppercase tracking-tight p-2 rounded-none border-2 border-black dark:border-neo-yellow shadow-[3px_3px_0_0_#000] dark:shadow-[3px_3px_0_0_oklch(89.5%_0.23_95)] animate-in fade-in-0 zoom-in-95 data-[side=top]:slide-in-from-bottom-1 max-w-45 text-center"
-              >
-                Selesaikan achievement untuk mendapatkan hadiah 100K
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>}
-
+        <TooltipAchiev />
       </div>
 
       {/* Kritik Feedback */}
@@ -151,7 +105,7 @@ const Achievement: React.FC<AchievementProps> = ({ isDesktop, isOnline }) => {
               Unlock Tags
             </span>
             <span className="text-xxs font-black tabular-nums">
-              {tags.length} / {TOTAL_TAGS}
+              {tags.length} / {TARGET_TAGS}
             </span>
           </div>
           <div className="h-3 border-2 border-black dark:border-neo-yellow bg-neo-bg dark:bg-zinc-950 overflow-hidden">
@@ -165,14 +119,14 @@ const Achievement: React.FC<AchievementProps> = ({ isDesktop, isOnline }) => {
         </div>
         {user?.user_key && canSave && (
           <button
-            disabled={loading}
+            disabled={loadSaveTag}
             onClick={saveUpdateTag}
             className={`
                 ${!isOnline
                 ? "hidden"
                 : "bg-neo-blue text-white py-2 px-2 neo-btn shadow-neo-sm"
               }`}>
-            {loading ? <Loader /> :
+            {loadSaveTag ? <Loader /> :
               <Save className="w-4 h-4 stroke-[2.5]" />}
           </button>
         )}

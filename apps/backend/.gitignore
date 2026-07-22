@@ -5,6 +5,7 @@ dist
 # dotenv environment variable files
 .env
 .env.production
+.env.prod.local
 
 src/generated/prisma
 src/generated/prisma-pg

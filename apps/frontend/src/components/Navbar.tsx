@@ -16,7 +16,7 @@ const NAV_ITEMS = [
   { label: "About", href: "/about" }
 ];
 
-const NavPages = ({ className, isMobile }: { className: string, isMobile?: boolean }) =>
+const NavPages = ({ className, isMobile, setMenuOpen }: { className: string, isMobile?: boolean, setMenuOpen?: (open: boolean) => void; }) =>
   // <ul className="hidden sm:flex items-center gap-2" >
   <ul className={`${className} items-center gap-2`} >
     {
@@ -24,6 +24,9 @@ const NavPages = ({ className, isMobile }: { className: string, isMobile?: boole
         <li key={item.label} id={isMobile && item.label === "About" ? "nav-about-mobile" : "nav-about"}>
           <NavLink
             to={item.href}
+            onClick={() => {
+              if (isMobile) setMenuOpen?.(false);
+            }}
             className={({ isActive }) =>
               `block neo-btn px-3 py-1 text-[11px] font-bold uppercase border-2.5 border-black transition-all shadow-neo-sm hover:bg-neo-red dark:border-neo-yellow dark:shadow-neo-yellow
                     ${isActive
@@ -286,7 +289,7 @@ export default function Navbar() {
         </div>
 
         {/* 1. Navigasi */}
-        <NavPages className="flex p-3" isMobile={true} />
+        <NavPages className="flex p-3" isMobile={true} setMenuOpen={setMenuOpen} />
 
         {/* Action Buttons */}
         <SidebarBtn isNavbarVisible={isNavbarVisible}

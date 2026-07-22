@@ -34,8 +34,9 @@ export const RatingModal: React.FC<RatingModalProps> = ({ isOpen, onClose, onSuc
     if (rating) {
       setScoreCF(rating.score_cf);
       setScoreChat(rating.score_chat);
+      setMessage(rating.message || "");
     }
-  }, []);
+  }, [isOpen, rating]);
 
   if (!isOpen) return null;
 

@@ -18,6 +18,7 @@ export const useGoogleAuth = () => {
     const setFeedbackNumber = useAuthStore((s) => s.setFeedbackNumber)
     const setRecScores = useAuthStore((s) => s.setRecScores)
     const setSelectedMatkulItems = useAuthStore((s) => s.setSelectedMatkulItems)
+    const setRating = useAuthStore((s) => s.setRating)
     const setTags = useChatStore((s) => s.setTags);
     const clearMessages = useChatStore((s) => s.clearMessages);
 
@@ -63,18 +64,20 @@ export const useGoogleAuth = () => {
 
             // 5. Simpan ke Zustand Store (otomatis masuk localStorage jika pakai persist)
             setAuth(userData, jwtToken);
-            toast.success(`Anda dapat akses untuk beri kritik chat.`, { position: "top-center" });
+            const accessLoaded: string[] = ['Kritik'];
+
             if (userKey === 4404) toast.info(`Akun bukan target, diberi akses Test Public User`);
 
             // 6. (case user adalah pengguna & rekomendasi ada) simpan recomendation Tampilkan notifikasi dapat akses fitur rekomendasi.
             if (backendRes.data.recommendations) {
+                accessLoaded.push('Rekomendasi Matkul');
                 // notif pakai toast sonner
-                toast.success(`Anda dapat akses rekomendasi matkul.`, { position: "top-center" });
                 const rec: Record<string, number> = backendRes.data.recommendations;
                 const sortedScores = Object.entries(rec)
                     .sort(([, a], [, b]) => b - a);
                 setRecScores(sortedScores); // matkul, category score, category_matkul
             }
+            toast.success(`Dapat akses [${accessLoaded.join(', ')}].`, { position: "top-center" });
 
             const dataLoaded: string[] = [];
 
@@ -100,6 +103,16 @@ export const useGoogleAuth = () => {
                     setTags([]);
                 }
             }
+            if (backendRes.data.user_score) {
+                dataLoaded.push("Rating");
+                const score = backendRes.data.user_score;
+                setRating({
+                    score_cf: score.score_cf,
+                    score_chat: score.score_chat,
+                    message: score.message || ""
+                });
+            }
+
             if (dataLoaded.length > 0) toast.success(`Riwayat [${dataLoaded.join(', ')}] dimuat.`, { position: "top-center" });
 
             // console.log("Login berhasil!");

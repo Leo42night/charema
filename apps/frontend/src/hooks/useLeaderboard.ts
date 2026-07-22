@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 
 // Samakan struktur tipe data dengan yang dikirim backend
 export interface LeaderboardItem {
-    nim: string;
-    total_tags: number;
+    user_key: number,
+    total_tags: number,
+    total_kritik: number,
+    is_scoring: boolean
 }
 
 interface BroadcastPayload {
