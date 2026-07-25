@@ -3,7 +3,7 @@ export const SUGGESTED_PROMPTS = ["Hallo!", "Kamu ini apa?", "Kasih Rekomendasi 
 
 // local storage keys and cypher key (contant folding akan memakai nilai di env jika ada, jadi fallback value tidak akan pernah dipakai di production, hanya untuk development lokal saja)
 // Update jika: ada perubahan besar pada struktur data (reset localStorage browser user)
-export const STORAGE_VERSION = "v1.7.6"; // deploy GCP + chatbot 20v + fix (tourguide, readme, schema user)
+export const STORAGE_VERSION = "v1.8"; // LLM 5 model
 export const USER_STORAGE_KEY = import.meta.env.VITE_USER_STORAGE_KEY || "user_data";
 export const AVAILABLE_MATKULS_STORAGE_KEY = import.meta.env.VITE_AVAILABLE_MATKULS_STORAGE_KEY || "available_matkuls";
 

@@ -11,6 +11,7 @@ interface FeedbackData {
 }
 
 interface ChatStore {
+  chatType: string;
   messages: Message[]; // riwayat pesan
   // Menggunakan Record<id_pesan, isi_saran> agar tiap pesan punya catatan feedback unik
   feedback: Record<number, FeedbackData>;
@@ -21,6 +22,7 @@ interface ChatStore {
   loadSaveTag: boolean;
 
   // ── Chat ────────────────────────────────────────────────────────────────────
+  setChatType: (newChatType: string) => void;
   setFeedback: (
     id: number,
     updater: Partial<FeedbackData> | ((prev: FeedbackData) => Partial<FeedbackData>)
@@ -44,6 +46,7 @@ interface ChatStore {
 export const useChatStore = create<ChatStore>()(
   persist(
     (set, get) => ({
+      chatType: "tfjs",
       messages: [],
       tags: [],
       toastTag: null,
@@ -51,6 +54,7 @@ export const useChatStore = create<ChatStore>()(
       loadSaveTag: false,
 
       // ── Chat ────────────────────────────────────────────────────────────────
+      setChatType: (newChatType) => set({ chatType: newChatType }),
       setMessages: (updater) =>
         set((state) => ({
           messages:
@@ -110,9 +114,10 @@ export const useChatStore = create<ChatStore>()(
       name: "chat-store",
       // Simpan ke localStorage hanya data persisten — bukan toastTag (ephemeral)
       partialize: (state) => ({
+        chatType: state.chatType,
         messages: state.messages,
         tags: state.tags,
-        canSave: state.canSave
+        canSave: state.canSave,
       }),
     }
   )

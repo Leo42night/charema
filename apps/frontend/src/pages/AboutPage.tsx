@@ -168,7 +168,7 @@ function LeaderboardList({ leaderboardData }: {
                 />
 
                 <ChipButton
-                  label={String(4)}
+                  label={String(user.total_kritik)}
                   achieved={kritikAchieved}
                   achievedClass="bg-blue-500 border-black text-white shadow-[1px_1px_0px_0px_#000] dark:shadow-[1px_1px_0px_0px_rgba(255,255,255,0.1)]"
                   defaultClass="bg-white dark:bg-zinc-800 border-black dark:border-neutral-600 text-black dark:text-white shadow-[1px_1px_0px_0px_#000] dark:shadow-[1px_1px_0px_0px_rgba(255,255,255,0.1)]"

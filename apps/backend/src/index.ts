@@ -5,6 +5,7 @@ import { type ApiResponse, TARGET_KRITIK, TARGET_TAGS } from "shared";
 import user_cf_scores from "./data/user_cf_scores.json";
 import type { DbClient } from "./types";
 import { dataRoutes } from "./routes/data.route";
+import { chatRoutes } from "./routes/chat.route";
 // import { broadcastLeaderboard } from "./ws/broadcast";
 
 const recommendations = user_cf_scores as Record<string, Record<string, number>>;
@@ -21,7 +22,8 @@ export const createApp = (getPrisma: () => DbClient) => {
         exp: "1d",
       })
     )
-    .use(dataRoutes(getPrisma))
+    .use(dataRoutes(getPrisma)) // all GET routes
+    .use(chatRoutes()) // LLM
     // Health check
     .get("/", async (): Promise<ApiResponse<any>> => {
       const start = Date.now(); // 1. Mulai hitung waktu

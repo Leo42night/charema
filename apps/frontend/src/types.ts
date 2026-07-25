@@ -32,7 +32,7 @@ export interface Message {
     role: "user" | "assistant";
     content: string;
     timestamp: string;
-    tag?: string;
+    tag?: string; // LLM tidak pakai tag
     isError?: boolean;
     showMatkulModal?: boolean;
     selectedMatkulIds?: number[]; // seleksi matkul di modal rekomendasi

@@ -77,7 +77,7 @@ export const useWinnerCheck = () => {
                             },
                         }
                     );
-                    if (response.data.data !== null) {
+                    if (response.data.data !== null) { // belum ada winner
                         console.log('Berhasil klaim status pemenang:', response.data);
                         // confetty
                         confetti({

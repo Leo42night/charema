@@ -23,18 +23,16 @@ import { useWinnerCheck } from "@/hooks/useWinnerCheck";
 function WinnerModal({
     open,
     onClose,
-    waNumber,
 }: {
     open: boolean;
     onClose: () => void;
-    waNumber: string;
 }) {
     if (!open) return null;
 
     const waMessage = encodeURIComponent(
-        "Halo, saya sudah menyelesaikan misi Akademik Bot dan ingin klaim reward 🎉"
+        "Halo, saya sudah menyelesaikan misi Akademik Bot dan ingin klaim reward :)"
     );
-    const waLink = `https://wa.me/${waNumber}?text=${waMessage}`;
+    const waLink = `https://wa.me/6281545161348?text=${waMessage}`;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
@@ -360,7 +358,6 @@ export default function ChatbotPage() {
             <WinnerModal
                 open={showWinnerModal}
                 onClose={() => setShowWinnerModal(false)}
-                waNumber="6281234567890" // ganti dengan nomor WA sebenarnya, format internasional tanpa "+" atau "0" di depan
             />
         </div>
     );

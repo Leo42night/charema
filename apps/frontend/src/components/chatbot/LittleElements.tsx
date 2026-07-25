@@ -1,13 +1,13 @@
 // fragment elemen dari ChatbotPage agar file tidak panjang
-
-import { useAuthStore } from "@/stores/useAuthStore";
-import { useChatStore } from "@/stores/useChatStore";
+import { useState } from "react";
 import axios from "axios";
+import ReactMarkdown from 'react-markdown';
 import { motion } from "framer-motion";
 import { BookOpen } from "lucide-react";
 import { MessageSquarePlus, Send } from "lucide-react"; // Ambil ikon pendukung
-import { useState } from "react";
 import { toast } from "sonner";
+import { useAuthStore } from "@/stores/useAuthStore";
+import { useChatStore } from "@/stores/useChatStore";
 import type { Message } from "@/types"
 import { BACKEND_URL } from "@/constants";
 
@@ -104,11 +104,18 @@ export const MessageBubble = ({ msg }: { msg: Message }) => {
                 <div className="text-xxs uppercase font-bold mb-1 opacity-60">
                     {msg.role === "user"
                         ? `User // ${msg.timestamp}`
-                        : `System // ${msg.timestamp}`}
+                        : `${msg.timestamp}`}
                 </div>
-                <p className="text-sm leading-relaxed whitespace-pre-line pb-4">
-                    {msg.content}
-                </p>
+                <div className="text-sm leading-relaxed pb-4 
+                        [&_strong]:font-black [&_strong]:underline
+                        [&_em]:italic [&_em]:text-zinc-700 dark:[&_em]:text-zinc-300
+                        [&_p]:mb-2 [&_p]:last:mb-0
+                        [&_ul]:list-disc [&_ul]:pl-5 [&_li]:mb-1"
+                >
+                    <ReactMarkdown>
+                        {msg.content}
+                    </ReactMarkdown>
+                </div>
 
                 {/* Tombol Beri Masukan di Kanan Bawah */}
                 {/* Rules: 1. tidak boleh tampil di msg pertama */}

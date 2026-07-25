@@ -1,5 +1,6 @@
 import { STORAGE_VERSION } from '@/constants';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { useChatStore } from '@/stores/useChatStore';
 import { useUIStore } from '@/stores/useUIStore';
 import { Star } from 'lucide-react';
 import { useState } from "react";
@@ -61,6 +62,8 @@ const SidebarBtn = ({
 }) => {
     const user = useAuthStore((state) => state.user);
     const rating = useAuthStore((s) => s.rating);
+    const chatType = useChatStore((s) => s.chatType);
+    const setChatType = useChatStore((s) => s.setChatType);
     const msgCount = useUIStore((s) => s.msgCount);
     const resetChat = useUIStore((s) => s.resetChat);
 
@@ -75,7 +78,6 @@ const SidebarBtn = ({
                 </span>
             </div>
 
-            {/* rm: px-3 */}
             <div className="grid grid-cols-2 gap-2">
                 <button
                     onClick={() => setShowResetConfirm(true)}
@@ -148,6 +150,33 @@ const SidebarBtn = ({
                         />
                     </button>
                 )}
+            </div>
+
+            {/* Chatbot type selector */}
+            <div className="w-full">
+                <p className="text-xxs font-black uppercase tracking-wider mb-1 text-black dark:text-neo-yellow">
+                    Model_Engine
+                </p>
+                <div className="grid grid-cols-2 border-2 border-black shadow-neo-sm overflow-hidden">
+                    <button
+                        onClick={() => setChatType("tfjs")}
+                        className={`py-2 text-xxs font-black uppercase tracking-tighter transition-all border-r-2 border-black
+                ${chatType === "tfjs"
+                                ? "bg-neo-yellow text-black"
+                                : "bg-neo-white-cool dark:bg-zinc-800 text-black dark:text-white"}`}
+                    >
+                        TF.JS
+                    </button>
+                    <button
+                        onClick={() => setChatType("llm")}
+                        className={`py-2 text-xxs font-black uppercase tracking-tighter transition-all
+                ${chatType === "llm"
+                                ? "bg-neo-yellow text-black"
+                                : "bg-neo-white-cool dark:bg-zinc-800 text-black dark:text-white"}`}
+                    >
+                        LLM
+                    </button>
+                </div>
             </div>
 
             <ConfirmResetModal
