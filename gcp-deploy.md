@@ -7,8 +7,8 @@ bun remove @aws-sdk/client-apigatewaymanagementapi @aws-sdk/client-dynamodb @aws
 - Postgres (Free Trial 30 hari) (pakai nilai default).
 - Connections -> Networking:
     - Instance IP assignment -> Public IP (Check)
-    - Authorized networks (All `0.0.0.0/0`)
-    - Data API authorization -> Allow Data API (Check)
+    - Authorized networks (All `0.0.0.0/0` atau My IP)
+    <!-- - Data API authorization -> Allow Data API (Check) -->
 - Connections -> Security:
     - Allow only SSL connections (Select)
     - Manage server CA certificates (Create -> Download -> Rotate)
@@ -22,6 +22,7 @@ DATABASE_URL='postgresql://postgres:%11Ab1Abb1|A0b1A@34.41.101.194:5432/postgres
 ```sh
 # sesuaikan project default
 gcloud config set project PROJECT_ID
+# cek -> gcloud config get-value project
 # lihat INSTANCE_ID=NAME, region, & PUBLIC_IP (masukkan ke .env.production)
 gcloud sql instances list
 ```
@@ -46,7 +47,7 @@ gcloud projects get-iam-policy PROJECT_ID --flatten="bindings[].members" --filte
 cd apps/backend && bun prisma generate --schema prisma/schema-pg.prisma && cd ../.. 
 
 # DEPLOY: panggil Dockerfile (jalankan di root project, instance id adalah Name)
-gcloud run deploy elysia-app --source . --allow-unauthenticated --region us-east1 --add-cloudsql-instances PROJECT_ID-DB:us-central1:NAME --project=PROJECT_ID_RUN --max-instances=1
+gcloud run deploy elysia-app --source . --allow-unauthenticated --region us-east1 --add-cloudsql-instances PROJECT_ID_SQL:us-central1:NAME --project=PROJECT_ID_RUN --max-instances=1
 # => Masukkan Service URL ke frontend/.env.production.local 
 # ? Allow unauthenticated = dapat diakses public, config akses cloud SQL spesifik
 # ? Jika sudah intial run, setelahnya cukup run -> gcloud run deploy elysia-app --source . 

@@ -72,7 +72,7 @@ const Achievement: React.FC<AchievementProps> = ({ isDesktop, isOnline }) => {
         </div>
 
         {/* Tooltip: Mobile (press) & Desktop (hover)  */}
-        <TooltipAchiev />
+        <TooltipAchiev tooltipText="Ada hadiah Rp50k! Lihat halaman About" />
       </div>
 
       {/* Kritik Feedback */}

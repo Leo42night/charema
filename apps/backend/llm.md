@@ -1,3 +1,6 @@
+# LLM
+LLM Free or Limited (billing not needed). Menjawab pertanyaan secara natural, mengambil kontext di Backend apabila diperlukan.
+
 ## Gemini
 
 ```sh
@@ -38,24 +41,24 @@ curl -X POST http://localhost:3000/chat/openrouter -H "Content-Type: application
 ## Mistral
 ```sh
 bun add @mistralai/mistralai
-# key (admin.mistral.ai/organization/api-keys)
+# key (https://admin.mistral.ai/organization/api-keys)
 MISTRAL_API_KEY=isi_dengan_api_key_mistral_anda
 
 # set route & test
 curl -X POST http://localhost:3000/chat/mistral -H "Content-Type: application/json" -d "{\"prompt\": \"Berikan saya rekomendasi matkul\",\"userName\": \"Leo Prangs Tobing\"}"
 ```
 
-# z.ai
+## z.ai
 ```sh
 # pakai `openapi` library
-# key (z.ai/manage-apikey/apikey-list)
+# key (https://z.ai/manage-apikey/apikey-list)
 Z_AI_API_KEY
 
 # set route & test
 curl -X POST http://localhost:3000/chat/mistral -H "Content-Type: application/json" -d "{\"prompt\": \"Berikan saya rekomendasi matkul\",\"userName\": \"Leo Prangs Tobing\"}"
 ```
 
-# Github Model
+## Github Model
 ```sh
 # pakai `openapi` library
 # key (https://github.com/marketplace/models/azure-openai/gpt-5/playground -> Use This Model)
@@ -65,7 +68,7 @@ GITHUB_TOKEN
 curl -X POST http://localhost:3000/chat/github -H "Content-Type: application/json" -d "{\"prompt\": \"Berikan saya rekomendasi matkul\",\"userName\": \"Leo Prangs Tobing\"}"
 ```
 
-## Failed
+## Failed or Stall
 - Nvidia nuggu konfirmasi nomor
 - xai grok tidak ada free tier
 - cerebras perlu pasang credit card

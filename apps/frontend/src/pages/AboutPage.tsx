@@ -1,17 +1,17 @@
 // pages/AboutPage.tsx
-import { Crown, Database, Play, Star, Trophy, Users } from "lucide-react";
+import { Database, Play, Star, Trophy, Users } from "lucide-react";
 import axios from "axios";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useRecomToMatkul } from "@/hooks/useRecomToMatkul";
-import { useLeaderboard, type LeaderboardItem } from "@/hooks/useLeaderboard";
 import { RekomResult } from "@/components/RekomResult";
-import { TARGET_KRITIK, TARGET_TAGS, userToNim } from "shared";
+import { userToNim } from "shared";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import githubIcon from "@/assets/github.svg"
 import rekapJson from "@/data/rekap.json";
 import { BACKEND_URL, TUTORIAL_YT } from "@/constants";
 import TooltipAchiev from "@/components/TooltipAchiev";
+import { CalonWinnersCloud } from "@/components/CalonWinnerCloud";
 
 interface RekapData {
   total_data_latih: number;
@@ -26,229 +26,25 @@ interface RekapData {
   target_users: number;
 }
 
-interface UserDetail {
-  name: string;
-  picture: string;
-}
-
-function ChipButton({
-  label,
-  achieved,
-  achievedClass,
-  defaultClass,
-  popoverText,
-}: {
-  label: string;
-  achieved: boolean;
-  achievedClass: string;
-  defaultClass: string;
-  popoverText: string;
-}) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  // Tutup popover kalau klik di luar
-  useEffect(() => {
-    function handleClickOutside(e: Event) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("touchstart", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("touchstart", handleClickOutside);
-    };
-  }, []);
-
-  return (
-    <div ref={ref} className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className={`font-space font-black text-xs px-2 py-0.5 border-2 shrink-0 active:scale-95 transition-transform ${achieved ? achievedClass : defaultClass
-          }`}
-      >
-        {label}
-      </button>
-
-      {open && (
-        <div
-          className="absolute z-50 top-full right-0 mt-1 w-40 p-2 border-2 border-black bg-white dark:bg-zinc-900 dark:border-neo-yellow shadow-[3px_3px_0px_0px_#000] dark:shadow-[3px_3px_0px_0px_#facc15] text-[10px] font-bold text-black dark:text-white"
-        >
-          {popoverText}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function LeaderboardList({ leaderboardData }: {
-  leaderboardData: LeaderboardItem[];
-}) {
-  const [expandedKey, setExpandedKey] = useState<number | null>(null);
-  const [userDetails, setUserDetails] = useState<Record<number, UserDetail>>({});
-  const [loadingKey, setLoadingKey] = useState<number | null>(null);
-  const [errorKey, setErrorKey] = useState<number | null>(null);
-
-  async function handleToggle(userKey: number) {
-    // Kalau baris yang sama diklik lagi, tutup accordion
-    if (expandedKey === userKey) {
-      setExpandedKey(null);
-      return;
-    }
-
-    setExpandedKey(userKey);
-
-    // Kalau data sudah pernah di-fetch, tidak perlu request ulang
-    if (userDetails[userKey]) return;
-
-    setLoadingKey(userKey);
-    setErrorKey(null);
-
-    try {
-      const res = await axios.get(`${BACKEND_URL}/data/user/${userKey}`);
-      const detail: UserDetail = res.data.data; // sesuaikan dengan bentuk response backend
-
-      setUserDetails((prev) => ({ ...prev, [userKey]: detail }));
-    } catch (err) {
-      setErrorKey(userKey);
-    } finally {
-      setLoadingKey(null);
-    }
-  }
-
-  return (
-    <>
-      {leaderboardData.map((user: LeaderboardItem, index: number) => {
-        const nim = userToNim[user.user_key] || "TIDAK DIKETAHUI";
-
-        const tagsAchieved = user.total_tags >= TARGET_TAGS;
-        const kritikAchieved = user.total_kritik >= TARGET_KRITIK;
-
-        const isExpanded = expandedKey === user.user_key;
-        const isLoading = loadingKey === user.user_key;
-        const isError = errorKey === user.user_key;
-        const detail = userDetails[user.user_key];
-
-        return (
-          <div key={index} className="border-2 border-black dark:border-neutral-700">
-            {/* Row utama */}
-            <div className="flex items-center justify-between p-1.5 bg-zinc-50 dark:bg-zinc-900/50 hover:bg-neo-yellow/10 dark:hover:bg-neo-yellow/5 transition-colors">
-              <div className="flex items-center gap-2">
-                <span className="w-5 text-center font-black text-xs text-neutral-400 dark:text-neutral-500">
-                  #{index + 1}
-                </span>
-
-                {/* NIM sebagai trigger accordion */}
-                <button
-                  type="button"
-                  onClick={() => handleToggle(user.user_key)}
-                  className="font-mono text-[11px] font-black tracking-wide text-black dark:text-white underline decoration-dotted flex items-center gap-1"
-                >
-                  {nim}
-                  <span
-                    className={`inline-block transition-transform ${isExpanded ? "rotate-180" : ""}`}
-                  >
-                    ▾
-                  </span>
-                </button>
-              </div>
-
-              {/* Chips: total_tags, total_kritik, is_scoring */}
-              <div className="flex items-center gap-1">
-                <ChipButton
-                  label={String(user.total_tags)}
-                  achieved={tagsAchieved}
-                  achievedClass="bg-neo-yellow border-black text-black shadow-[1px_1px_0px_0px_#000] dark:shadow-[1px_1px_0px_0px_#facc15]"
-                  defaultClass="bg-white dark:bg-zinc-800 border-black dark:border-neutral-600 text-black dark:text-white shadow-[1px_1px_0px_0px_#000] dark:shadow-[1px_1px_0px_0px_rgba(255,255,255,0.1)]"
-                  popoverText={`Total Tags: ${user.total_tags}/${TARGET_TAGS}${tagsAchieved ? " — Target tercapai! 🎉" : ""
-                    }`}
-                />
-
-                <ChipButton
-                  label={String(user.total_kritik)}
-                  achieved={kritikAchieved}
-                  achievedClass="bg-blue-500 border-black text-white shadow-[1px_1px_0px_0px_#000] dark:shadow-[1px_1px_0px_0px_rgba(255,255,255,0.1)]"
-                  defaultClass="bg-white dark:bg-zinc-800 border-black dark:border-neutral-600 text-black dark:text-white shadow-[1px_1px_0px_0px_#000] dark:shadow-[1px_1px_0px_0px_rgba(255,255,255,0.1)]"
-                  popoverText={`Total Kritik: ${user.total_kritik}/${TARGET_KRITIK}${kritikAchieved ? " — Target tercapai! 🎉" : ""
-                    }`}
-                />
-
-                <ChipButton
-                  label={user.is_scoring ? "✓" : "✕"}
-                  achieved={user.is_scoring}
-                  achievedClass="mt-0.5 bg-green-500 border-black text-white shadow-[1px_1px_0px_0px_#000] dark:shadow-[1px_1px_0px_0px_rgba(255,255,255,0.1)] w-6 h-6 flex items-center justify-center"
-                  defaultClass="mt-0.5 bg-white dark:bg-zinc-800 border-black dark:border-neutral-600 text-zinc-400 shadow-[1px_1px_0px_0px_#000] dark:shadow-[1px_1px_0px_0px_rgba(255,255,255,0.1)] w-6 h-6 flex items-center justify-center"
-                  popoverText={
-                    user.is_scoring ? "Sudah memberi rating ⭐" : "Belum memberi rating"
-                  }
-                />
-              </div>
-            </div>
-
-            {/* Accordion content */}
-            <div
-              className={`grid transition-all duration-200 ease-in-out ${isExpanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
-                }`}
-            >
-              <div className="overflow-hidden">
-                <div className="p-2 flex items-center gap-3 bg-white dark:bg-zinc-950 border-t-2 border-black dark:border-neutral-700">
-                  {isLoading && (
-                    <span className="text-xs font-bold text-zinc-400 animate-pulse">
-                      Memuat data...
-                    </span>
-                  )}
-
-                  {isError && (
-                    <span className="text-xs font-bold text-red-500">
-                      Gagal memuat data user.
-                    </span>
-                  )}
-
-                  {!isLoading && !isError && detail && (
-                    <>
-                      <div className="w-12 h-12 shrink-0 border-2 border-black dark:border-neutral-600 overflow-hidden bg-white">
-                        {detail.picture ? (
-                          <img
-                            src={detail.picture}
-                            alt={detail.name}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-zinc-200 dark:bg-zinc-700">
-                            <span className="text-xs font-black text-zinc-500">?</span>
-                          </div>
-                        )}
-                      </div>
-                      <span className="font-black text-sm text-black dark:text-white">
-                        {detail.name}
-                      </span>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        )
-      })}
-    </>
-  )
-}
+const winners: {
+  name: string,
+  nim: string,
+  created_at: string,
+  proof_url: string
+}[] = [{
+  name: "VIONA DANIELLA BIRA",
+  nim: "H1101241061",
+  created_at: "2026-07-22 18:53:05.777+00",
+  proof_url: "https://raw.githubusercontent.com/Leo42night/Leo42night/main/img/charema-1st-winner.jpg"
+}];
 
 const AboutPage = () => {
+  const user = useAuthStore((state) => state.user);
   const selectedMatkulItems = useAuthStore((state) => state.selectedMatkulItems);
-  const { leaderboard, isConnected } = useLeaderboard(import.meta.env.VITE_WS_URL);
-  const [winner, setWinner] = useState<{
-    name: string,
-    created_at: string,
-    picture: string
-  } | null>(null);
-  useEffect(() => {
-    // console.log("leaderboard", leaderboard);
-    // console.log("isConnected", isConnected);
-  }, [leaderboard, isConnected]);
+
+  // const calon_winners = Array.from({ length: 500 }, () => Array.from({ length: 12 }, () => "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"[Math.floor(Math.random() * 62)]).join(""));
+  const [calonWinners, setCalonWinners] = useState<string[]>([]);
+  const [my_tags_lenght, setmy_tags_lenght] = useState<number>(0);
 
   // Fallback aman pakai useMemo, bukan inline
   const safeSelectedItems = useMemo(
@@ -267,11 +63,10 @@ const AboutPage = () => {
     n_rec_users: number;
     n_feedback: number;
     demographics: Record<string, number>;
-    top_10_users: LeaderboardItem[];
     avg_score_chat: number;
     avg_score_cf: number; total_users: number
   }>({
-    n_rec_users: 0, n_feedback: 0, demographics: {}, top_10_users: [],
+    n_rec_users: 0, n_feedback: 0, demographics: {},
     avg_score_chat: 0, avg_score_cf: 0, total_users: 0
   });
   const hasMounted = useRef(false);
@@ -283,18 +78,24 @@ const AboutPage = () => {
 
     const fetchStats = async () => {
       try {
-        const response = await axios.get(`${BACKEND_URL}/data/stats`); // Sesuaikan endpoint backend Anda
-        // console.log("response.data", response.data);
+        const response = await axios.get(`${BACKEND_URL}/data/stats/`, {
+          params: {
+            user_key: user?.user_key
+          }
+        }); // Sesuaikan endpoint backend Anda
+        console.log("response.data", response.data);
         const scr = response.data.scores_stats;
         setStats({
           n_rec_users: response.data.n_rec_users || 0,
           n_feedback: response.data.n_feedback || 0,
           demographics: response.data.demographics || {},
-          top_10_users: response.data.top_10_users || [],
           avg_score_chat: scr.avg_score_chat, avg_score_cf: scr.avg_score_cf,
           total_users: scr.total_users
         });
-        setWinner(response.data.winner);
+        // setWinner(response.data.winner);
+        const calonWinnerList = response.data.calon_winners.map((calonWinner: { user_key: number; created_at: string }) => userToNim[calonWinner.user_key])
+        setCalonWinners(calonWinnerList);
+        setmy_tags_lenght(response.data.my_tags_lenght);
       } catch (error) {
         console.error("Gagal mengambil data statistik:", error);
       } finally {
@@ -462,7 +263,7 @@ const AboutPage = () => {
             </div>
           </div>
 
-          {/* Kolom Kanan: Panel Statistik Neobrutalism */}
+          {/* Kolom Kanan: Panel Statistik */}
           <div className="w-full md:w-72 md:shrink-0 lg:w-full xl:w-72 xl:shrink-0 flex flex-col gap-4">
 
             {/* Baris Baru: GitHub Link (Kolom Kiri) & Total Kritik (Kolom Kanan) */}
@@ -499,108 +300,79 @@ const AboutPage = () => {
             </div>
 
             {/* LEADERBOARD: Top 10 Kontributor */}
+            {/* !!! Modifikasi jadi dadu random (nim) bagi yang berhasil unlock min. 15 */}
             <div className="p-4 border-2 border-black dark:border-neo-yellow bg-white dark:bg-zinc-800 shadow-[4px_4px_0px_0px_#000] dark:shadow-[4px_4px_0px_0px_#facc15] flex flex-col gap-3">
+              {/* Header */}
               <div className="flex items-center justify-between border-b-2 border-black dark:border-neutral-700 pb-2">
                 <div className="flex items-start gap-1.5">
-                  {/* Ikon Trophy disesuaikan sedikit margin atasnya agar sejajar dengan baris pertama */}
-                  <Trophy
-                    className="w-4 h-4 shrink-0 fill-neo-yellow stroke-black dark:stroke-neo-yellow stroke-[2.5] mt-0.5"
-                  />
-
-                  {/* Pembungkus vertikal untuk Judul dan Deskripsi */}
+                  <Trophy className="w-4 h-4 shrink-0 fill-neo-yellow stroke-black dark:stroke-neo-yellow stroke-[2.5] mt-0.5" />
                   <div className="flex flex-col">
                     <span className="text-xxs font-black uppercase tracking-wider text-neutral-800 dark:text-neutral-300">
-                      Top 10 User
+                      Reward Game
                     </span>
-                    {/* Deskripsi Kecil Hadiah */}
                     <span className="text-xxs font-medium text-neutral-500 dark:text-neutral-400 mt-0.5 normal-case">
-                      <strong className="font-extrabold underline ">Rp100k</strong> bagi yg pertama selesai misi
+                      Hadiah Rp50rb untuk 1st & 2nd winner
                     </span>
                   </div>
                 </div>
 
-                <TooltipAchiev />
+                <TooltipAchiev tooltipText="Cara main, cek video tutorial" />
               </div>
 
               {/* Winner */}
-              {winner &&
-                <div className="flex items-center gap-3">
-                  {/* Bukti Hadiah */}
-                  {/* <a
-                    href="https://lh3.googleusercontent.com/a/ACg8ocItZPaKM6xWbFTel2XTVH8DAqzpFaB6jefke-FvIS87qLTgAp4=s96-c"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="shrink-0 group"
-                  >
-                    <div className="w-14 h-14 border-2 border-black dark:border-neutral-600 shadow-[2px_2px_0px_0px_#000] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] overflow-hidden bg-white relative">
-                      <img
-                        src="https://lh3.googleusercontent.com/a/ACg8ocItZPaKM6xWbFTel2XTVH8DAqzpFaB6jefke-FvIS87qLTgAp4=s96-c"
-                        alt={`Bukti hadiah ${winner.name}`}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                      />
-                      <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white text-[7px] font-black uppercase text-center py-0.5">
-                        Bukti
-                      </div>
-                    </div>
-                  </a> */}
+              {winners && winners.length > 0 &&
+                winners.map((winner, index) => (
+                  <div key={index} className="flex items-center gap-3">
 
-                  {/* Foto pemenang */}
-                  <div className="w-14 h-14 shrink-0 border-2 border-black dark:border-neutral-600 shadow-[2px_2px_0px_0px_#000] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] overflow-hidden bg-white">
-                    {winner.picture ? (
-                      <img
-                        src={winner.picture}
-                        alt={winner.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-zinc-200 dark:bg-zinc-700">
-                        <span className="text-xs font-black text-zinc-500">?</span>
+                    <a href={winner.proof_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="shrink-0 group"
+                    >
+                      <div className="w-14 h-14 border-2 border-black dark:border-neutral-600 shadow-[2px_2px_0px_0px_#000] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] overflow-hidden bg-white relative">
+                        <img
+                          src={winner.proof_url}
+                          alt={`Bukti hadiah ${winner.name}`}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        />
+                        <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white text-[7px] font-black uppercase text-center py-0.5">
+                          {index === 0 ? '1st' : '2nd'} Winner
+                        </div>
                       </div>
-                    )}
-                  </div>
-                  <div className="flex flex-col gap-0.5 min-w-0">
-                    <div className="flex gap-0.5">
-                      <Crown
-                        className="w-4 h-4 shrink-0 fill-black stroke-black dark:fill-neo-yellow dark:stroke-neo-yellow stroke-[2.5]"
-                      />
-                      <span className="text-xxs font-black uppercase bg-black text-white dark:bg-neo-yellow dark:text-black px-1.5 py-0.5 border border-black shrink-0">
-                        WINNER
+                    </a>
+
+                    {/* Nama, NIM & tanggal winner */}
+                    <div className="flex flex-col" >
+                      <span className="text-xs font-black text-neutral-800 dark:text-neutral-200">
+                        {winner.name}
+                      </span>
+                      <span className="font-mono text-[10px] font-bold text-neutral-500 dark:text-neutral-500">
+                        {winner.nim}
+                      </span>
+                      <span className="font-mono text-[9px] font-medium tracking-wide text-neutral-400 dark:text-neutral-500">
+                        {new Date(winner.created_at).toLocaleString("id-ID", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
                       </span>
                     </div>
-                    {/* Nama dan NIM */}
-                    <span className="font-black text-sm text-black dark:text-white truncate">
-                      {winner.name}
-                    </span>
-                    <span className="font-mono text-[11px] font-black tracking-wide text-neutral-700 dark:text-neutral-400">
-                      {new Date(winner.created_at).toLocaleString("id-ID", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </span>
                   </div>
-                </div>
+                ))
               }
 
+              {/* Daftar calon pemenang (wordcloud animasi) */}
               {loading ? (
-                <span className="text-xs font-bold animate-pulse text-center py-4">Memuat Peringkat...</span>
+                <span className="text-xs font-bold animate-pulse text-center py-4">
+                  Memuat Calon Undian Pemenang...
+                </span>
               ) : (
-                <div className="flex flex-col gap-1.5 max-h-70 overflow-y-auto pr-1 custom-scrollbar">
-
-                  {/* Menggunakan data dari 'leaderboard' WebSocket, jika belum ada pakai 'stats.top_10_users' */}
-                  {((leaderboard && leaderboard.length > 0) ? leaderboard : stats.top_10_users) &&
-                    ((leaderboard && leaderboard.length > 0) ? leaderboard : stats.top_10_users).length > 0 ? (
-                    <LeaderboardList
-                      leaderboardData={(leaderboard && leaderboard.length > 0) ? leaderboard : stats.top_10_users}
-                    />
-                  ) : (
-                    <span className="text-xxs font-bold text-zinc-400 text-center py-4">Tidak ada data aktivitas</span>
-                  )}
-                </div>
+                <CalonWinnersCloud calon_winners={calonWinners} my_tags_lenght={my_tags_lenght} />
               )}
             </div>
+
 
             {/* Star CHART: Avg Score CF & FFNN */}
             <div className="p-4 border-2 border-black dark:border-neo-yellow bg-neo-white-neutral dark:bg-zinc-800 shadow-[4px_4px_0px_0px_#000] dark:shadow-[4px_4px_0px_0px_#facc15] flex flex-col gap-3">
@@ -719,8 +491,8 @@ const AboutPage = () => {
 
           </div>
         </div>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 };
 

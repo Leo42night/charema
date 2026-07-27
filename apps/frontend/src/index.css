@@ -187,6 +187,25 @@
   .cb-scrollbar::-webkit-scrollbar { width: 4px; }
   .cb-scrollbar::-webkit-scrollbar-track { @apply bg-neo-bg; }
   .cb-scrollbar::-webkit-scrollbar-thumb { @apply bg-black; }
+
+  @keyframes neo-cloud-fade {
+    0% {
+      opacity: 0;
+      transform: scale(0.75);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.06);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .neo-cloud-fade {
+    animation: neo-cloud-fade 0.22s ease-out;
+  }
 }
 
 @layer utilities {

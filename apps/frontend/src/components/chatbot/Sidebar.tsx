@@ -25,7 +25,7 @@ const Sidebar = ({
                 chatPresenter={chatPresenter}
                 isOnline={isOnline}
                 setModalScore={setModalScore}
-                className="neo-box" />
+                className="neo-box p-3" />
 
             <Achievement isDesktop={true} isOnline={isOnline} />
             <RatingModal isOpen={modalScore} onClose={() => setModalScore(false)} onSuccess={() => setModalScore(false)} />

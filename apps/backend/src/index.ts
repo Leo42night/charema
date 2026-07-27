@@ -23,7 +23,7 @@ export const createApp = (getPrisma: () => DbClient) => {
       })
     )
     .use(dataRoutes(getPrisma)) // all GET routes
-    .use(chatRoutes()) // LLM
+    .use(chatRoutes(getPrisma)) // LLM
     // Health check
     .get("/", async (): Promise<ApiResponse<any>> => {
       const start = Date.now(); // 1. Mulai hitung waktu
@@ -82,16 +82,14 @@ export const createApp = (getPrisma: () => DbClient) => {
         // simpan image & name
         await getPrisma().user.upsert({
           where: {
-            user_key: user_data.user_key
+            userId: user_data.user_key
           },
           update: {
-            name: user_data.name,
-            picture: user_data.picture
+            name: user_data.name
           },
           create: {
-            user_key: user_data.user_key,
-            name: user_data.name,
-            picture: user_data.picture
+            userId: user_data.user_key,
+            name: user_data.name
           }
         });
 
@@ -122,7 +120,7 @@ export const createApp = (getPrisma: () => DbClient) => {
         }))?.tags;
 
         // 7. Ambil score
-        responseData['user_score'] = await getPrisma().score.findFirst({
+        responseData['user_score'] = await getPrisma().score.findUnique({
           where: {
             user_key: user_data.user_key
           }
@@ -363,16 +361,11 @@ export const createApp = (getPrisma: () => DbClient) => {
         }),
       }
     )
-    // panggil (check dulu di fe, tag==20, feedback==4, rating!=null) 
-    .post("/winner/:user_key", async ({ params, set }) => {
+    // panggil (check dulu di fe, tag>=15, feedback==4, rating!=null)
+    // test dari seed -> curl -X POST http://localhost:3000/calon-winner/5555
+    .post("/calon-winner/:user_key", async ({ params, set }) => {
       // Parsing user_key ke integer jika tipe di DB adalah Int
       const user_key = Number(params.user_key);
-
-      // cek winner belum ada
-      const n_winner = await getPrisma().winner.findFirst();
-      if (n_winner) {
-        return { data: null, message: "Winner sudah ada" };
-      }
 
       const achievement = await getPrisma().achievement.findUnique({
         where: { user_key },
@@ -385,34 +378,22 @@ export const createApp = (getPrisma: () => DbClient) => {
 
       const tags = achievement.tags;
 
-      let res_data: {
-        is_win: boolean;
-        n_tags: number;
-        feedback?: number;
-        score?: boolean;
-      } = {
-        is_win: false,
-        n_tags: tags.length,
-      };
+      let is_eligible = false;
 
-      if (tags.length >= TARGET_TAGS) {
+      if (tags.length >= 15) {
         const feedback = await getPrisma().feedback.count({ where: { user_key } });
-        res_data.feedback = feedback;
 
         if (feedback >= TARGET_KRITIK) {
-          const score = await getPrisma().score.findFirst({ where: { user_key } });
-          res_data.score = !!score;
+          const score = await getPrisma().score.findUnique({ where: { user_key } });
 
           if (score !== null) {
-            //  Gunakan UPSERT agar tidak crash jika user sudah pernah klaim
-            await getPrisma().winner.create({ data: { user_key } });
-
-            res_data.is_win = true;
+            await getPrisma().calonWinner.create({ data: { user_key } });
+            is_eligible = true;
           }
         }
       }
 
-      return { data: res_data };
+      return { is_eligible };
     }, {
       params: t.Object({
         user_key: t.Number()

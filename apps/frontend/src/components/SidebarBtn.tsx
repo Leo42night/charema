@@ -4,6 +4,7 @@ import { useChatStore } from '@/stores/useChatStore';
 import { useUIStore } from '@/stores/useUIStore';
 import { Star } from 'lucide-react';
 import { useState } from "react";
+import TooltipAchiev from './TooltipAchiev';
 
 function ConfirmResetModal({
     open,
@@ -66,11 +67,13 @@ const SidebarBtn = ({
     const setChatType = useChatStore((s) => s.setChatType);
     const msgCount = useUIStore((s) => s.msgCount);
     const resetChat = useUIStore((s) => s.resetChat);
+    const hasBeenCalonWinner = useUIStore((s) => s.hasBeenCalonWinner);
+
 
     const [showResetConfirm, setShowResetConfirm] = useState(false);
 
     return (
-        <div className={`${className} p-3 dark:border-neo-yellow bg-white dark:bg-zinc-900`}>
+        <div className={`${className} dark:border-neo-yellow bg-white dark:bg-zinc-900`}>
             <div className="flex items-center justify-between text-xxs font-bold uppercase tracking-widest border-b-2 border-black dark:border-neo-yellow pb-2 mb-3">
                 <span>{`${msgCount} Pesan`}</span>
                 <span className="bg-neo-yellow text-black px-1.5 py-0.5 rounded-none font-bold">
@@ -134,7 +137,7 @@ const SidebarBtn = ({
                     <button
                         onClick={() => setModalScore(true)}
                         disabled={!isOnline}
-                        className={`relative mb-3 w-full font-mono text-xxs font-black uppercase tracking-tight py-2 text-center border-2 border-black transition-all
+                        className={`relative w-full font-mono text-xxs font-black uppercase tracking-tight py-2 text-center border-2 border-black transition-all
                             ${!isOnline
                                 ? "bg-gray-400 text-gray-700 cursor-not-allowed shadow-none translate-x-px translate-y-px"
                                 : "bg-neo-purple text-white shadow-neo-yellow hover:bg-opacity-90 active:shadow-none active:translate-x-0.5 active:translate-y-0.5"
@@ -153,29 +156,46 @@ const SidebarBtn = ({
             </div>
 
             {/* Chatbot type selector */}
-            <div className="w-full">
+            <div className="w-full mt-2">
                 <p className="text-xxs font-black uppercase tracking-wider mb-1 text-black dark:text-neo-yellow">
                     Model_Engine
                 </p>
                 <div className="grid grid-cols-2 border-2 border-black shadow-neo-sm overflow-hidden">
                     <button
                         onClick={() => setChatType("tfjs")}
-                        className={`py-2 text-xxs font-black uppercase tracking-tighter transition-all border-r-2 border-black
+                        className={`py-1 text-xs font-black uppercase tracking-tighter transition-all border-r-2 border-black
                 ${chatType === "tfjs"
                                 ? "bg-neo-yellow text-black"
                                 : "bg-neo-white-cool dark:bg-zinc-800 text-black dark:text-white"}`}
                     >
                         TF.JS
                     </button>
-                    <button
-                        onClick={() => setChatType("llm")}
-                        className={`py-2 text-xxs font-black uppercase tracking-tighter transition-all
-                ${chatType === "llm"
-                                ? "bg-neo-yellow text-black"
-                                : "bg-neo-white-cool dark:bg-zinc-800 text-black dark:text-white"}`}
-                    >
-                        LLM
-                    </button>
+                    {/* LLM hanya dapat dipilih apabila berhasil unlock min. 15 tags */}
+                    <div className="relative">
+                        <button
+                            onClick={() => hasBeenCalonWinner && setChatType("llm")}
+                            disabled={!hasBeenCalonWinner}
+                            className={`w-full flex items-center justify-center py-1 text-xs font-black uppercase tracking-tighter transition-all
+                                    ${!hasBeenCalonWinner
+                                    ? "bg-neutral-200 text-neutral-400 dark:bg-zinc-900 dark:text-neutral-600 cursor-not-allowed"
+                                    : chatType === "llm"
+                                        ? "bg-neo-yellow text-black"
+                                        : "bg-neo-white-cool dark:bg-zinc-800 text-black dark:text-white"}`}
+                        >
+                            LLM
+                        </button>
+                        {!hasBeenCalonWinner &&
+                            <div className="absolute top-1 right-1 z-10">
+                                <TooltipAchiev
+                                    tooltipText={
+                                        hasBeenCalonWinner
+                                            ? "Akses LLM hanya untuk Calon Winner. Lihat halaman About!"
+                                            : "Belum unlock. Selesaikan syarat di halaman About untuk akses LLM!"
+                                    }
+                                />
+                            </div>
+                        }
+                    </div>
                 </div>
             </div>
 

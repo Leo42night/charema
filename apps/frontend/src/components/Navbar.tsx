@@ -291,8 +291,8 @@ export default function Navbar() {
         {/* 1. Navigasi */}
         <NavPages className="flex p-3" isMobile={true} setMenuOpen={setMenuOpen} />
 
-        {/* Action Buttons */}
-        <SidebarBtn isNavbarVisible={isNavbarVisible}
+        {/* Action Buttons [Mobile] */}
+        <SidebarBtn className="px-3" isNavbarVisible={isNavbarVisible}
           setNavbarVisible={setNavbarVisible}
           chatPresenter={chatPresenter}
           isOnline={isOnline}

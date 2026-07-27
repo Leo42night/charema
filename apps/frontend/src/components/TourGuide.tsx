@@ -215,12 +215,12 @@ const ChatContent = () => (
 const SidebarContent = () => (
     <div className="flex flex-col gap-3 [@media(max-height:700px)]:gap-2 [@media(max-height:550px)]:gap-1.5">
         <p className="text-[13px] leading-relaxed text-zinc-800 [@media(max-height:700px)]:text-[12px] [@media(max-height:550px)]:text-[11px] [@media(max-height:550px)]:leading-snug">
-            Sidebar ini menampilkan progress interaksimu. Penuhi semua tahapan untuk mendapatkan reward
-            <span className="hidden [@media(max-height:550px)]:inline"> <strong>Rp100k</strong></span>!
+            Sidebar berisi progressmu. Selesaikan semua tugas dan terpilih untuk dapat reward
+            <span className="hidden [@media(max-height:550px)]:inline"> <strong>Rp50k</strong></span>!
         </p>
         <div className="border-2 border-black bg-black text-neo-yellow p-4 [@media(max-height:700px)]:p-3 [@media(max-height:550px)]:hidden shadow-[2px_2px_0_0_#facc15]">
             <div className="text-3xl font-black [@media(max-height:700px)]:text-2xl">
-                Rp100.000
+                Rp50k
             </div>
         </div>
         <p className="text-xxs text-zinc-900 border-l-2 border-black pl-2 [@media(max-height:550px)]:hidden">

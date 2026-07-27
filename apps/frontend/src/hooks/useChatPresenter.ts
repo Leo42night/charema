@@ -15,15 +15,53 @@ type ChatResponse = {
   model?: string;
 };
 
+type ProviderKey = "gemini" | "groq" | "openrouter" | "z-ai" | "github" | "mistral";
+
+// z-ai gagal membentuk JSON terstruktur (json_schema strict) untuk jawaban akhir,
+// TAPI endpoint SQL generator di backend memakai plain-text (callLLMText, bukan json_schema),
+// jadi z-ai tetap aman dipakai sebagai sqlProvider — hanya dihindari sebagai answerProvider.
+const SQL_MODELS: ProviderKey[] = ["gemini", "groq", "openrouter", "mistral", "z-ai"];
+const ANSWER_MODELS: ProviderKey[] = ["gemini", "groq", "openrouter", "mistral"]; // github butuh kartu kredit, z-ai dihindari di sini
+
+// Bangun daftar kombinasi (sqlProvider, answerProvider) yang sudah di-shuffle,
+// sehingga tiap percobaan memakai 2 server LLM berbeda (beban tersebar).
+function buildProviderPairs(): { sqlProvider: ProviderKey; answerProvider: ProviderKey }[] {
+  const sqlPool = shuffleArray([...SQL_MODELS]);
+  const answerPool = shuffleArray([...ANSWER_MODELS]);
+  const attempts = Math.max(sqlPool.length, answerPool.length);
+
+  const pairs: { sqlProvider: ProviderKey; answerProvider: ProviderKey }[] = [];
+  for (let i = 0; i < attempts; i++) {
+    const sqlProvider = sqlPool[i % sqlPool.length];
+    let answerProvider = answerPool[i % answerPool.length];
+
+    // jangan sampai sqlProvider === answerProvider, biar beban benar-benar
+    // tersebar ke 2 server berbeda, bukan numpuk di satu server yang sama
+    if (sqlProvider === answerProvider) {
+      answerProvider = answerPool[(i + 1) % answerPool.length];
+    }
+    pairs.push({ sqlProvider, answerProvider });
+  }
+  return pairs;
+}
+
 const tryLLM = async (
-  model: string,
+  sqlProvider: ProviderKey,
+  answerProvider: ProviderKey,
   message: string,
+  userId: number,
   userName?: string
 ): Promise<ChatResponse | null> => {
   try {
     const res = await axios.post(
-      `${BACKEND_URL}/chat/${model}`,
-      { prompt: message, ...(userName && { userName }) },
+      `${BACKEND_URL}/chat/ask`,
+      {
+        prompt: message,
+        userId,
+        sqlProvider,
+        answerProvider,
+        ...(userName && { userName }),
+      },
       { headers: { "Content-Type": "application/json" } }
     );
     if (res.data?.data) {
@@ -31,7 +69,9 @@ const tryLLM = async (
     }
     return null;
   } catch (err) {
-    if (axios.isAxiosError(err)) console.error(`[${model}]`, err.response?.data);
+    if (axios.isAxiosError(err)) {
+      console.error(`[${sqlProvider}->${answerProvider}]`, err.response?.data);
+    }
     return null;
   }
 };
@@ -39,21 +79,21 @@ const tryLLM = async (
 const getChatResult = async (
   chatType: string,
   message: string,
+  userId: number,
   userName?: string
 ): Promise<ChatResponse> => {
   if (chatType === "tfjs") {
     return sendChatTfjs(message);
   }
 
-  // Urutan coba: model pilihan user dulu, baru sisanya, baru tfjs sebagai last resort
-  const allLLMs = shuffleArray(["mistral", "groq", "openrouter", "github", "gemini", "z-ai"]); // Best to worst: mistral -> groq -> openrouter -> github -> gemini (ada limit) -> z-ai
+  const pairs = buildProviderPairs();
 
-  for (const model of allLLMs) {
-    const result = await tryLLM(model, message, userName);
-    if (result) return { ...result, model };
+  for (const { sqlProvider, answerProvider } of pairs) {
+    const result = await tryLLM(sqlProvider, answerProvider, message, userId, userName);
+    if (result) return { ...result, model: `${sqlProvider}+${answerProvider}` };
   }
 
-  // Semua LLM gagal → fallback terakhir ke tfjs
+  // Semua kombinasi gagal → fallback terakhir ke tfjs
   return sendChatTfjs(message);
 };
 
@@ -84,7 +124,12 @@ export const useChatPresenter = () => {
     setError(null);
 
     try {
-      const chatResult: ChatResponse = await getChatResult(chatType, message, Math.random() < 0.5 ? user?.name : undefined);
+      let chatResult: ChatResponse;
+      if (user?.user_key) {
+        chatResult = await getChatResult(chatType, message, user.user_key, Math.random() < 0.5 ? user?.name : undefined);
+      } else {
+        chatResult = await sendChatTfjs(message);
+      }
 
       const { randomResponse, predictedTag: tag, probability, model } = chatResult;
 

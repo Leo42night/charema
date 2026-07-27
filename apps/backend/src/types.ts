@@ -14,7 +14,7 @@ export interface DbClient {
       create: { user_key: number, score_cf: number; score_chat: number, message?: string };
     }) => Promise<any>;
     findMany: () => Promise<any[]>;
-    findFirst: (args: { where: any }) => Promise<any>;
+    findUnique: (args: { where: any }) => Promise<any>;
     aggregate: (args: any) => Promise<any>;
   };
   achievement: { // camelCase
@@ -36,18 +36,19 @@ export interface DbClient {
   };
   // Menggunakan 'any' pada query untuk bypass validasi strict Prisma internal
   $queryRaw: <T = any>(query: any, ...values: any[]) => Promise<T>;
+  $queryRawUnsafe: <T = any>(query: any, ...values: any[]) => Promise<T>;
   user: {
     findMany: () => Promise<any[]>;
-    findFirst: (args: { where: { user_key: number } }) => Promise<any>;
+    findUnique: (args: { where: { userId: number } }) => Promise<any>;
     upsert: (args: {
-      where: { user_key: number }; // Key unik untuk pencarian data
-      update: { name: string, picture: string }; // data yang dapat terupdate
-      create: { user_key: number, name: string, picture: string }
+      where: { userId: number }; // Key unik untuk pencarian data
+      update: { name: string }; // data yang dapat terupdate
+      create: { userId: number, name: string }
     }) => Promise<any>;
-  }
-  winner: {
+  };
+  calonWinner: {
     create: (args: { data: any }) => Promise<any>;
-    findFirst: () => Promise<any>;
+    findMany: () => Promise<any[]>;
   }
 }
 

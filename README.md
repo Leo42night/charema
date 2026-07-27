@@ -4,7 +4,7 @@ Proyek ini dibuat untuk Skripsi saya sebagai Mahasiswa S1 Sistem Infromasi Unive
 
 ## Features
 Main:
-- **Chatbot** model *Feed-Forward Neural Network* dengan custom dialog. Unlock **8 intent** & min **5 kritik chat** untuk mendapatkan reward. Run di frontend menggunakan [TensorflowJS](https://www.tensorflow.org/js/tutorials). Local Storage tetap terenkripsi dengan Cipher jadi lebih sulit untuk dilihat response nya.
+- **Chatbot** model *Feed-Forward Neural Network* dengan custom dialog. Unlock **8 intent** & min **5 kritik chat** untuk mendapatkan reward. Run di frontend menggunakan [TensorflowJS](https://www.tensorflow.org/js/tutorials). Local Storage tetap terenkripsi dengan Cipher jadi lebih sulit untuk dilihat response nya. Ditambah beberapa model LLM untuk RAG.
 - **Rekomendasi Matkul** model *Neural Collaborative-Filtering* dengan dataset Nilai mahasiswa Sisfo & Resiksom Untan dari tahun 2021-2025. 
 
 > [!NOTE]
@@ -36,6 +36,7 @@ Proyek Monorepo dikelola menggunakan [BunJs](https://bun.com/), kode dengan [Typ
 
 ## Previous Version
 - [Deploy AWS](https://github.com/Leo42night/charema/commit/adaf47486cf1fbd2f588be2d60a36f6db2cc22d5)
+- [Leaderboard 1st Search](https://github.com/Leo42night/charema/tree/dfd6cab14a5c264d5b8208ee710f1da3a64075fb)
 
 ## Tools
 ```sh
@@ -51,3 +52,7 @@ git push origin main --force
 # cek di history commit
 git log --oneline -- <path/to/file>
 ```
+
+## Idea
+- LLM Ambil konteks dari database (skema -> DB, intent [riwayat saya, dosen yang ])
+- Workflow Ubah berbagai tipe data jadi target training data

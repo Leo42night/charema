@@ -19,7 +19,13 @@ export const useWinnerCheck = () => {
     const setLoadSaveTag = useChatStore((s) => s.setLoadSaveTag);
     const canSave = useChatStore((s) => s.canSave);
     const dismissSave = useChatStore((s) => s.dismissSave);
+
+    const hasBeenWinner = useUIStore((s) => s.hasBeenWinner);
+    const hasBeenCalonWinner = useUIStore((s) => s.hasBeenCalonWinner);
+    const setHasBeenWinner = useUIStore((s) => s.setHasBeenWinner);
+    const setHasBeenCalonWinner = useUIStore((s) => s.setHasBeenCalonWinner);
     const setShowWinnerModal = useUIStore((s) => s.setShowWinnerModal);
+    const setShowCalonWinnerModal = useUIStore((s) => s.setShowCalonWinnerModal);
 
     // Ref untuk mencegah request dipanggil berulang kali saat re-render
     const hasClaimedRef = useRef(false);
@@ -53,14 +59,24 @@ export const useWinnerCheck = () => {
 
     useEffect(() => {
         const isEligible = tags.length >= TARGET_TAGS && feedbackNumber >= TARGET_KRITIK && rating !== null;
+        const isCalonEligible = tags.length >= 15 && feedbackNumber >= TARGET_KRITIK && rating !== null;
         // console.log("useWinner: isEligible", isEligible);
         // console.log("useWinner: canSave", canSave);
         // console.log(user?.user_key);
         // console.log(!hasClaimedRef.current);
 
-        // Tambahkan pengecekan !hasClaimedRef.current agar hanya jalan SEKALI
-        if (isEligible && user?.user_key) {
-            const claimWinner = async () => {
+        // 2nd Turn
+        if (!hasBeenWinner && isEligible && user?.user_key && user.user_key !== 1495) {
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+            setHasBeenWinner(true);
+            setShowWinnerModal(true);
+        }
+        if (!hasBeenCalonWinner && isCalonEligible && user?.user_key) {
+            const claimCalonWinner = async () => {
                 try {
                     // 1. Await simpan tag terlebih dahulu
                     if (canSave) {
@@ -69,7 +85,7 @@ export const useWinnerCheck = () => {
 
                     // 2. Kirim klaim winner
                     const response = await axios.post(
-                        `${BACKEND_URL}/winner/${user.user_key}`,
+                        `${BACKEND_URL}/calon-winner/${user.user_key}`,
                         {},
                         {
                             headers: {
@@ -77,24 +93,25 @@ export const useWinnerCheck = () => {
                             },
                         }
                     );
-                    if (response.data.data !== null) { // belum ada winner
-                        console.log('Berhasil klaim status pemenang:', response.data);
+                    if (response.data.is_eligible) {
+                        console.log('Berhasil klaim status calon pemenang:', response.data);
                         // confetty
                         confetti({
                             particleCount: 100,
                             spread: 70,
                             origin: { y: 0.6 }
                         });
-                        setShowWinnerModal(true);
+                        setHasBeenCalonWinner(true);
+                        setShowCalonWinnerModal(true);
                     }
                 } catch (error) {
                     hasClaimedRef.current = false; // Reset jika gagal agar bisa di-retry
                     elysiaErr(error);
-                    console.error('Gagal klaim pemenang:', error);
+                    console.error('Gagal klaim calon pemenang:', error);
                 }
             };
 
-            claimWinner();
+            claimCalonWinner();
         }
     }, [tags.length, feedbackNumber, rating, user?.user_key, token, saveUpdateTag]);
 };

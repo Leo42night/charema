@@ -43,3 +43,4 @@ data-local.txt
 
 chat-intents.json
 text.ts
+*.sql

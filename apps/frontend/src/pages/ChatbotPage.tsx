@@ -20,54 +20,6 @@ import RekomendasiResult from "@/components/chatbot/RekomendasiMsg";
 import { elysiaErr } from "@/lib/elysiaErr";
 import { useWinnerCheck } from "@/hooks/useWinnerCheck";
 
-function WinnerModal({
-    open,
-    onClose,
-}: {
-    open: boolean;
-    onClose: () => void;
-}) {
-    if (!open) return null;
-
-    const waMessage = encodeURIComponent(
-        "Halo, saya sudah menyelesaikan misi Akademik Bot dan ingin klaim reward :)"
-    );
-    const waLink = `https://wa.me/6281545161348?text=${waMessage}`;
-
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-            <div className="w-full max-w-sm p-5 border-2 border-black dark:border-neo-yellow bg-white dark:bg-zinc-800 shadow-[4px_4px_0px_0px_#000] dark:shadow-[4px_4px_0px_0px_#facc15] flex flex-col gap-3 text-center">
-                <span className="text-3xl">🏆</span>
-
-                <span className="text-base font-black text-black dark:text-white">
-                    Selamat!
-                </span>
-
-                <span className="text-xs font-medium text-neutral-600 dark:text-neutral-300">
-                    Kamu telah berhasil menyelesaikan misi dan berhak mendapatkan reward Rp100k.
-                    Silakan hubungi nomor WhatsApp di bawah ini untuk klaim hadiahmu.
-                </span>
-
-                <a
-                    href={waLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="neo-btn mt-2 py-2 bg-green-500 text-white text-xs font-black uppercase border-2 border-black shadow-neo-sm hover:bg-opacity-90 active:shadow-none active:translate-x-0.5 active:translate-y-0.5"
-                >
-                    Hubungi via WhatsApp
-                </a>
-
-                <button
-                    onClick={onClose}
-                    className="text-[11px] font-bold text-neutral-500 dark:text-neutral-400 underline mt-1"
-                >
-                    Tutup
-                </button>
-            </div>
-        </div>
-    );
-}
-
 export default function ChatbotPage() {
     // store state
     const user = useAuthStore((state) => state.user);
@@ -80,7 +32,9 @@ export default function ChatbotPage() {
     const dismissToast = useChatStore((s) => s.dismissToast);
     const setMsgCount = useUIStore((s) => s.setMsgCount);
     const showWinnerModal = useUIStore((s) => s.showWinnerModal);
+    const showCalonWinnerModal = useUIStore((s) => s.showCalonWinnerModal);
     const setShowWinnerModal = useUIStore((s) => s.setShowWinnerModal);
+    const setShowCalonWinnerModal = useUIStore((s) => s.setShowCalonWinnerModal);
 
     // logic presenter
     const { setMessages, isLoading, sendMessage } = useChatPresenter();
@@ -355,10 +309,94 @@ export default function ChatbotPage() {
                 />
             )}
 
-            <WinnerModal
+            <CompletedNoRewardModal
                 open={showWinnerModal}
                 onClose={() => setShowWinnerModal(false)}
             />
+            <CalonWinnerModal
+                open={showCalonWinnerModal}
+                onClose={() => setShowCalonWinnerModal(false)}
+            />
+        </div>
+    );
+}
+
+
+function CompletedNoRewardModal({
+    open,
+    onClose,
+}: {
+    open: boolean;
+    onClose: () => void;
+}) {
+    if (!open) return null;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+            <div className="w-full max-w-sm p-5 border-2 border-black dark:border-neo-yellow bg-white dark:bg-zinc-800 shadow-[4px_4px_0px_0px_#000] dark:shadow-[4px_4px_0px_0px_#facc15] flex flex-col gap-3 text-center">
+                <span className="text-3xl">🙏</span>
+
+                <span className="text-base font-black text-black dark:text-white">
+                    Terima Kasih!
+                </span>
+
+                <span className="text-xs font-medium text-neutral-600 dark:text-neutral-300">
+                    Kamu telah berhasil menyelesaikan <span className="font-black text-black dark:text-neo-yellow">seluruh misi (100%)</span> di Akademik Bot. Kami sangat menghargai usaha dan partisipasi kamu!
+                </span>
+
+                <span className="text-xs font-medium text-neutral-600 dark:text-neutral-300">
+                    Mohon maaf, <span className="font-black">1st winner</span> untuk reward Rp100k sudah dipilih terlebih dahulu, jadi untuk saat ini kamu belum berhak mendapatkan hadiah tersebut.
+                </span>
+
+                <span className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 normal-case">
+                    Tenang, kamu tetap punya kesempatan masuk undian 2nd winner Rp50k selama sudah memenuhi syaratnya. Terus pantau ya!
+                </span>
+
+                <button
+                    onClick={onClose}
+                    className="neo-btn mt-2 py-2 bg-black text-white dark:bg-neo-yellow dark:text-black text-xs font-black uppercase border-2 border-black shadow-neo-sm hover:bg-opacity-90 active:shadow-none active:translate-x-0.5 active:translate-y-0.5"
+                >
+                    Mengerti
+                </button>
+            </div>
+        </div>
+    );
+}
+
+function CalonWinnerModal({
+    open,
+    onClose,
+}: {
+    open: boolean;
+    onClose: () => void;
+}) {
+    if (!open) return null;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+            <div className="w-full max-w-sm p-5 border-2 border-black dark:border-neo-yellow bg-white dark:bg-zinc-800 shadow-[4px_4px_0px_0px_#000] dark:shadow-[4px_4px_0px_0px_#facc15] flex flex-col gap-3 text-center">
+                <span className="text-3xl">🎉</span>
+
+                <span className="text-base font-black text-black dark:text-white">
+                    Selamat, Kamu Unlock Akses!
+                </span>
+
+                <span className="text-xs font-medium text-neutral-600 dark:text-neutral-300">
+                    Kamu berhasil menyelesaikan syarat dan kini punya <span className="font-black text-black dark:text-neo-yellow">akses ke model LLM</span> Akademik Bot.
+                    Kamu juga otomatis masuk sebagai <span className="font-black text-black dark:text-neo-yellow">calon 2nd winner</span> undian reward <span className="font-black">Rp50k</span>.
+                </span>
+
+                <span className="text-[10px] font-bold text-neutral-500 dark:text-neutral-400 normal-case">
+                    Pemenang akan dipilih secara random dari seluruh calon yang memenuhi syarat. Pantau terus hasil undiannya ya!
+                </span>
+
+                <button
+                    onClick={onClose}
+                    className="neo-btn mt-2 py-2 bg-black text-white dark:bg-neo-yellow dark:text-black text-xs font-black uppercase border-2 border-black shadow-neo-sm hover:bg-opacity-90 active:shadow-none active:translate-x-0.5 active:translate-y-0.5"
+                >
+                    Mengerti
+                </button>
+            </div>
         </div>
     );
 }

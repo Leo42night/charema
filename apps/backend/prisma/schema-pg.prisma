@@ -51,15 +51,80 @@ model Feedback {
   created_at  DateTime   @updatedAt // jika update, maka berubah
 }
 
-// ditampilkan di leaderboard
-model User {
+// simpan data pemenang, jadi jika tag ter reset tidak masalah
+model CalonWinner {
   user_key Int @id
-  name       String // setelah login
-  picture    String // url gambar
+  created_at  DateTime   @default(now()) // interaksi pertama
 }
 
-// simpan data pemenang, jadi jika tag ter reset tidak masalah
-model Winner {
-  user_key Int @id
-  created_at  DateTime   @default(now()) // interaksi pertama (walaupun tidak langsung simpan)
+// ditampilkan di leaderboard
+model User {
+  userId    Int         @id @map("user_id")
+  name      String?
+  transaksi Transaksi[]
+
+  @@map("users")
+}
+
+model Matkul {
+  matkulId   Int         @id @map("matkul_id")
+  matkul     String?
+  kodeMatkul String?     @map("kode_matkul")
+  sks        Decimal?
+  transaksi  Transaksi[]
+
+  @@map("matkul")
+}
+
+model Dosen {
+  dosenId        Int              @id @map("dosen_id")
+  dosen          String?          @unique
+  transaksiDosen TransaksiDosen[]
+
+  @@map("dosen")
+}
+
+model Prodi {
+  prodiId   Int         @id @map("prodi_id")
+  prodi     String?     @unique
+  transaksi Transaksi[]
+
+  @@map("prodi")
+}
+
+model Transaksi {
+  id            Int              @id
+  userId        Int?             @map("user_id")
+  matkulId      Int?             @map("matkul_id")
+  prodiId       Int?             @map("prodi_id")
+  kelas         String?
+  rating        Decimal?
+  tahun         Int?
+  sm            Int?
+  smt           Int?
+  matkulLower   String?          @map("matkul_lower")
+  kelompokMinat String?          @map("kelompok_minat")
+  category      Int?
+  rate          Decimal?
+
+  // Relasi
+  user           User?            @relation(fields: [userId], references: [userId])
+  matkul         Matkul?          @relation(fields: [matkulId], references: [matkulId])
+  prodi          Prodi?           @relation(fields: [prodiId], references: [prodiId])
+  transaksiDosen TransaksiDosen[]
+
+  @@map("transaksi")
+}
+
+model TransaksiDosen {
+  transaksiId Int @map("transaksi_id")
+  dosenId     Int @map("dosen_id")
+
+  // Relasi
+  transaksi Transaksi @relation(fields: [transaksiId], references: [id])
+  dosen     Dosen     @relation(fields: [dosenId], references: [dosenId])
+
+  // Composite Primary Key
+  @@id([transaksiId, dosenId])
+  @@map("transaksi_dosen")
 }
